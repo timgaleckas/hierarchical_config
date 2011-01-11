@@ -1,5 +1,5 @@
 	  !!!plain
-								 __                           ___
+
                 | |                         / __/
       __ _ _   _| |_  ___   ___  ___  _ __ | |_ _  __ _
      / _` | | | | __|/ _ \ / __|/ _ \| '_ \|  _| |/ _` |
@@ -24,8 +24,8 @@ Lets say you have application.yml in your config folder:
 		defaults:
 	    web:
 		    hostname: 'localhost'
-   		noreply: noreply@myhost.com
-  		support_email: support@myhost.com
+		  noreply: noreply@myhost.com
+  	  support_email: support@myhost.com
 		production:
 		  web:
 		    hostname: "the.production.com"
