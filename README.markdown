@@ -1,5 +1,5 @@
 	  !!!plain
-	               __                           ___
+								 __                           ___
                 | |                         / __/
       __ _ _   _| |_  ___   ___  ___  _ __ | |_ _  __ _
      / _` | | | | __|/ _ \ / __|/ _ \| '_ \|  _| |/ _` |
@@ -22,13 +22,13 @@ Autoconfig in an automated way to create flexible configuration structures repre
 Lets say you have application.yml in your config folder:
 
 		defaults:
-	  	web:
-		  	hostname: 'localhost'
+	    web:
+		    hostname: 'localhost'
    		noreply: noreply@myhost.com
   		support_email: support@myhost.com
 		production:
-	  	web:
-		  	hostname: "the.production.com"
+		  web:
+		    hostname: "the.production.com"
 
 After requiring 'autoconfig' you should expect ApplicationConfig structure that will contain all the information. In production environment
 ApplicationConfig.web.hostname call will return "the.production.com".
