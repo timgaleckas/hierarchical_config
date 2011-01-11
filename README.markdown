@@ -36,5 +36,5 @@ ApplicationConfig.web.hostname call will return "the.production.com".
 ## Configuration
 
 By default, it will look at config directory of your project and transfer most of your .yml files (it ignores database ones). However,
-you have full control over where it need to look and what to convert.
+you have full control over where it needs to look and what it needs to convert.
 
