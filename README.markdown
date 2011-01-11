@@ -1,12 +1,12 @@
- !!!plain
-                _                                 ___
-               ( )_                             /'___)_
-    _ _  _   _ | ,_)   _      ___    _     ___ | (__ (_)   __
-  /'_` )( ) ( )| |   /'_`\  /'___) /'_`\ /' _ `\ ,__)| | /'_ `\
- ( (_| || (_) || |_ ( (_) )( (___ ( (_) )| ( ) | |   | |( (_) |
- `\__,_)`\___/'`\__)`\___/'`\____)`\___/'(_) (_)_)   (_)`\__  |
-                                                        ( )_) |
-                                                         \___/'
+!!!plain
+             _                           __ _
+            | |                         / _(_)
+  __ _ _   _| |_  ___   ___  ___  _ __ | |_ _  __ _
+ / _` | | | | __|/ _ \ / __|/ _ \| '_ \|  _| |/ _` |
+| (_| | |_| | |_| (_) | (__| (_) | | | | | | | (_| |
+ \__,_|\__,_|\__|\___/ \___|\___/|_| |_|_| |_|\__, |
+                                               __/ |
+                                              |___/
 
 ## What is it
 
@@ -21,8 +21,7 @@ Autoconfig in an automated way to create flexible configuration structures repre
 
 Lets say you have application.yml in your config folder:
 
-  !!!plain
-  defaults:
+	defaults:
 	  web:
 		  hostname: 'localhost'
     noreply: noreply@myhost.com
