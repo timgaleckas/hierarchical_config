@@ -3,11 +3,11 @@ require 'yaml'
 
 module StringCamelize
   # Taken straight from active support inflector.rb, line 161
-  def camelize(lower_case_and_underscored_word, first_letter_in_uppercase = true)
+  def camelize(first_letter_in_uppercase = true)
     if first_letter_in_uppercase
-      lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+      self.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
     else
-      lower_case_and_underscored_word.first + camelize(lower_case_and_underscored_word)[1..-1]
+      self.first + camelize(self)[1..-1]
     end
   end
 end
