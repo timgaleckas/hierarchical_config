@@ -1,6 +1,18 @@
 require 'ostruct'
 require 'yaml'
 
+module StringCamelize
+  # Taken straight from active support inflector.rb, line 161
+  def camelize(lower_case_and_underscored_word, first_letter_in_uppercase = true)
+    if first_letter_in_uppercase
+      lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+    else
+      lower_case_and_underscored_word.first + camelize(lower_case_and_underscored_word)[1..-1]
+    end
+  end
+end
+String.send(:include, StringCamelize) unless String.instance_methods.include?("camelize")
+
 module AutoConfig
   def self.root
     ENV['AUTOCONFIG_ROOT'] || ENV['APP_ROOT'] || Rails.root
