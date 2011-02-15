@@ -44,7 +44,7 @@ module AutoConfig
       app_config.update(config['defaults'] || {})
       app_config.update(config[environment] || {})
 
-      Object::const_set("#{name}Config".camelize.intern, OpenStruct.new(app_config))
+      Object::const_set("#{name}Config".gsub!('-','_').camelize.intern, OpenStruct.new(app_config))
     end
   ensure
     $VERBOSE = old_verbose
