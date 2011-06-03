@@ -15,7 +15,7 @@ String.send(:include, StringCamelize) unless String.instance_methods.include?("c
 
 module AutoConfig
   def self.root
-    ENV['AUTOCONFIG_ROOT'] || ENV['APP_ROOT'] || Rails.root
+    ENV['AUTOCONFIG_ROOT'] || ENV['APP_ROOT'] || (rails? && Rails.root) || base_dir
   end
 
   def self.pattern
@@ -27,7 +27,15 @@ module AutoConfig
   end
 
   def self.environment
-    ENV['AUTOCONFIG_ENV'] || ENV['APP_ENV'] || Rails.env
+    ENV['AUTOCONFIG_ENV'] || ENV['APP_ENV'] || (rails? && Rails.env) || base_dir
+  end
+
+  def self.rails?
+    Object::const_defined? "Rails"
+  end
+
+  def self.base_dir
+    File.dirname(File.expand_path(__FILE__))
   end
 
   files = Dir.glob(path)
