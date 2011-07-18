@@ -15,7 +15,8 @@ String.send(:include, StringCamelize) unless String.instance_methods.include?("c
 
 module AutoConfig
   def self.root
-    ENV['AUTOCONFIG_ROOT'] || ENV['APP_ROOT'] || (rails? && Rails.root) || base_dir
+    rails_root = (rails? && (Rails.root || File.expand_path('../', ENV['BUNDLE_GEMFILE'])))
+    ENV['AUTOCONFIG_ROOT'] || ENV['APP_ROOT'] || rails_root || base_dir
   end
 
   def self.pattern
