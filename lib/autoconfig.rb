@@ -39,6 +39,11 @@ module AutoConfig
     File.dirname(File.expand_path(__FILE__))
   end
 
+  def self.ignored_filenames
+    names = ENV['AUTOCONFIG_IGNORE'] ? "database|" + ENV['AUTOCONFIG_IGNORE'].gsub(/\s/,'|') : 'database'
+    Regexp.new(names)
+  end
+
   files = Dir.glob(path)
 
   begin
@@ -46,7 +51,7 @@ module AutoConfig
 
     files.each do |file|
       name = File.basename(file, '.yml')
-      next if name.match(/database/)
+      next if name.match(ignored_filenames)
 
       config     = YAML.load_file(file)
       app_config = config['common'] || {}
