@@ -28,7 +28,7 @@ module AutoConfig
   end
 
   def self.environment
-    ENV['AUTOCONFIG_ENV'] || ENV['APP_ENV'] || (rails? && Rails.env) || base_dir
+    ENV['AUTOCONFIG_ENV'] || ENV['APP_ENV'] || (rails? && Rails.env) || 'development'
   end
 
   def self.rails?

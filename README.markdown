@@ -36,5 +36,13 @@ ApplicationConfig.web.hostname call will return "the.production.com".
 ## Configuration
 
 By default, it will look at config directory of your project and transfer most of your .yml files (it ignores database ones). However,
-you have full control over where it needs to look and what it needs to convert.
+you have full control over where it needs to look and what it needs to convert. Here is a set of environment flags you could use:
 
+ * `AUTOCONFIG_ROOT` - allows setting of the application root. By default it will try to use APP_ROOT, rails root (if rails app) or base directory.
+ * `AUTOCONFIG_PATERN` - used to construct a path to your configuration files. By default it is set to config/*.yml
+ * `AUTOCONFIG_PATH` - allows setting a path to your configuration files. If set autoconfig will ignore patern and root, otherwise
+ it look at root and patern to get path to your files.
+ * `AUTOCONFIG_ENV` - allows setting environment in which autoconfig runs, by default it will try to use APP_ENV, Rails.env(if rails app) or
+ development (in that order)
+ * `AUTOCONFIG_IGNORE` - when set it will not create configs for files in the ignore. When not set it will just ignore database.yml. Takes a whitespace
+ separated list. Ex: 'cucumber cache'
