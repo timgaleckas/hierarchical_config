@@ -1,5 +1,5 @@
-ENV['AUTOCONFIG_ROOT'] = '.'
-require '../lib/autoconfig'
+ENV['AUTOCONFIG_ROOT'] = File.dirname(File.expand_path(__FILE__))
+require File.expand_path('../../lib/autoconfig', __FILE__)
 def assert( truth, message = 'is not true' )
   raise message unless truth
 end
