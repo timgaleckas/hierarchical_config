@@ -81,7 +81,7 @@ class AutoConfig
     end
 
     private
-
+    # unsets created constants
     def wipe
       unless @ordered_stanza_labels.nil?
         @ordered_stanza_labels.keys.each{|const| Object::const_set(const.intern, nil) }
@@ -90,6 +90,7 @@ class AutoConfig
       @errors = Set.new
     end
 
+    # merges two hashes with nested hashes if present
     def deep_merge( hash1, hash2 )
       hash1 = hash1.dup
       ( hash1.keys + hash2.keys ).each do | key |
@@ -102,7 +103,10 @@ class AutoConfig
       end
       hash1
     end
-
+    # Mutator method that does two things:
+    # * checks if any of the keys were required and not set. Upon finding
+    # it adds key to the error set
+    # * recursively sets open structs for deep hashes
     def ensure_requirements_met_and_ostructify!( hash, path )
       hash.each do | key, value |
         case
