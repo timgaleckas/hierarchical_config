@@ -7,13 +7,19 @@ assert( Object.const_get('OneConfig'), 'OneConfig must exist' )
 assert( OneConfig.one == 'yup' )
 ENV['AUTOCONFIG_ENV']='staging'
 begin
-  AutoConfig.reload
+  AutoConfig::Base.reload
 rescue StandardError => e
   assert( e.to_s =~ /OneConfig.one/, 'staging should raise error stating that OneConfig.one is REQUIRED' )
 end
 ENV['AUTOCONFIG_ENV']='test'
-AutoConfig.reload
+AutoConfig::Base.reload
 assert( OneConfig.something == 'hello' )
 assert( OneConfig.cache_classes == false )
 assert( OneConfig.tree1.tree3.tree4 == 'bleh' )
 assert( OneConfig.tree1.tree2 == 'hey' )
+begin
+  OneConfig.something_that_isnt_there
+  assert( false, 'unheard of values should raise NoMethodError' )
+rescue NoMethodError => m
+  # this is good
+end
