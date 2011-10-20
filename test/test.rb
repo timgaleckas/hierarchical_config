@@ -8,6 +8,7 @@ assert( OneConfig.one == 'yup' )
 ENV['AUTOCONFIG_ENV']='staging'
 begin
   AutoConfig::Base.reload
+  assert( false, 'error should be raised' )
 rescue StandardError => e
   assert( e.to_s =~ /OneConfig.one/, 'staging should raise error stating that OneConfig.one is REQUIRED' )
 end
@@ -23,3 +24,12 @@ begin
 rescue NoMethodError => m
   # this is good
 end
+begin
+  ENV['BOOM']='true'
+  AutoConfig::Base.reload
+  assert( false, 'error should be raised' )
+rescue StandardError => e
+  assert( e.to_s =~ /BoomConfig/, 'Should receive error about BoomConfig not being able to be read')
+  ENV['BOOM']=nil
+end
+AutoConfig::Base.reload
