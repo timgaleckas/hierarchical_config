@@ -1,5 +1,5 @@
 	  !!!plain
-
+                 _                           ____
                 | |                         / __/
       __ _ _   _| |_  ___   ___  ___  _ __ | |_ _  __ _
      / _` | | | | __|/ _ \ / __|/ _ \| '_ \|  _| |/ _` |
@@ -10,9 +10,11 @@
 
 ## What is it
 
-Autoconfig in an automated way to create flexible configuration structures representing your YAML configuration
+`autoconfig` in an automated way to create flexible configuration structures. 
 
-## How does it work
+Since version 2.0.0 `autoconfig` relies on [heirarchical_config](https://rubygems.org/gems/hierarchical_config) for the strategy for configuring an application in a static, declarative, robust, and intuitive way.
+
+## Usage
 
 1. require 'autoconfig'
 2. profit!
@@ -30,8 +32,8 @@ Lets say you have application.yml in your config folder:
        web:
          hostname: "the.production.com"
 
-After requiring 'autoconfig' you should expect ApplicationConfig structure that will contain all the information. In production environment
-ApplicationConfig.web.hostname call will return "the.production.com".
+After requiring 'autoconfig' you should expect `ApplicationConfig` structure that will contain all the information. 
+In production environment `ApplicationConfig.web.hostname` call will return `the.production.com`.
 
 ## Advance Example
 
@@ -66,6 +68,7 @@ Check it out under test/config/one
       three: five
 
 Autoconfig can support:
+
  * specifying which keys are required via !REQUIRED yaml type
  * environment specific defaults shared across some environments
  * deep nested structures
