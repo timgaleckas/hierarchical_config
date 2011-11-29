@@ -1,85 +1,105 @@
-	  !!!plain
-
-                | |                         / __/
-      __ _ _   _| |_  ___   ___  ___  _ __ | |_ _  __ _
-     / _` | | | | __|/ _ \ / __|/ _ \| '_ \|  _| |/ _` |
-    | (_| | |_| | |_| (_) | (__| (_) | | | | | | | (_| |
-     \__,_|\__,_|\__|\___/ \___|\___/|_| |_|_| |_|\__, |
-                                                   __/ |
-                                                  |___/
-
 ## What is it
 
-Autoconfig in an automated way to create flexible configuration structures representing your YAML configuration
+HierarchicalConfig is a library that implments a strategy for configuring an application in a static, declarative, robust, and intuitive way
+
+## Principles
+
+1. You should not be able to change your config once it's loaded. That's
+   not configuration, that's globals.
+2. You should be able to check in to source control a config file that
+   holds defaults and defines requirements.
+3. You should be able to define defaults accross multiple environments
+   without repeating yourself.
+4. You should be able to change configuration per box based on deploy
+   that does not affect the defaults or requirements that are checked in
+   to source control.
+
+## Usage
+
+1. require 'hierarchical_config'
+2. MY_APP_CONFIG = HierarchicalConfig.load_config( 'config_name', 'config_directory', 'environment_name' )
 
 ## How does it work
 
-1. require 'autoconfig'
-2. profit!
+HierarchicalConfig loads a yaml file from the config directory. Each top
+level name in the yaml file is either a default stanza (for one or more
+environments,) or a specific environment.
 
-## Basic Example
+It applies least specific rules first and proceeds to most specific. It
+then reads an optional overrides file and does the same. If any REQUIRED
+values have not been overriden by actual values, it raises an exception.
 
-Lets say you have application.yml in your config folder:
+The object that it returns is a deeply nested tree of configuration that
+can't be modified and raises exceptions if you ask for values that it
+doesn't know about.
+
+* No more having environments load without the mail server address
+  configured.
+* No more silent failures and returning nil for something you thought
+  was configured.
+* No more copy and pasting configuration accross environments.
+* No more stupid YAML tricks to dry up your configuration.
+* No more tricky config that changes based on runtime side effects.
+* No more config that is hidden from developers and not in source
+  control (unless you specifically need to.)
+
+## Example
+
+### config/app.yml
 
     defaults:
-      web:
-        hostname: 'localhost'
-      noreply: noreply@myhost.com
-      support_email: support@myhost.com
-    production:
-       web:
-         hostname: "the.production.com"
+      root:
+        child_a: 1
+        child_b: 2
+        child_c:
+          grandchild_a: 3
+          grandchild_b: 4
+      super_secret_password: !REQUIRED
 
-After requiring 'autoconfig' you should expect ApplicationConfig structure that will contain all the information. In production environment
-ApplicationConfig.web.hostname call will return "the.production.com".
-
-## Advance Example
-
-Check it out under test/config/one
-
-    defaults:
-      one: !REQUIRED
-      two: two
-      three: three
-      cache_classes: true
-      tree1:
-        tree2: hey
-        tree3:
-          tree4: blah
-
-    defaults[test,cucumber,development]:
-      cache_classes: false
-
-    defaults[test,cucumber]:
-      one: one
+    defaults[development,test]:
+      super_secret_password: not_that_secret
 
     development:
-      one: yup
+      root:
+        child_b: 8
 
-    test:
-      something: hello
-      tree1:
-        tree3:
-          tree4: bleh
+### config/app-overrides.yml
 
     production:
-      three: five
+      super_secret_password: cant_trust_dev_with_this_we_symlink_this_file
 
-Autoconfig can support:
- * specifying which keys are required via !REQUIRED yaml type
- * environment specific defaults shared across some environments
- * deep nested structures
+## Results
 
-## Configuration
+### development
 
-By default, it will look at config directory of your project and transfer most of your .yml files (it ignores database ones). However,
-you have full control over where it needs to look and what it needs to convert. Here is a set of environment flags you could use:
+    :root: 
+      :child_a: 1
+      :child_b: 8
+      :child_c: 
+        :grandchild_a: 3
+        :grandchild_b: 4
+    :super_secret_password: not_that_secret
 
- * `AUTOCONFIG_ROOT` - allows setting of the application root. By default it will try to use APP_ROOT, rails root (if rails app) or pwd directory.
- * `AUTOCONFIG_PATERN` - used to construct a path to your configuration files. By default it is set to config/*.yml
- * `AUTOCONFIG_PATH` - allows setting a path to your configuration files. If set autoconfig will ignore patern and root, otherwise
- it look at root and patern to get path to your files.
- * `AUTOCONFIG_ENV` - allows setting environment in which autoconfig runs, by default it will try to use APP_ENV, Rails.env(if rails app) or
- development (in that order)
- * `AUTOCONFIG_IGNORE` - when set it will not create configs for files in the ignore. When not set it will just ignore database.yml. Takes a whitespace
- separated list. Ex: 'cucumber cache'
+### test
+
+    :root: 
+      :child_a: 1
+      :child_b: 2
+      :child_c: 
+        :grandchild_a: 3
+        :grandchild_b: 4
+    :super_secret_password: not_that_secret
+
+### production
+
+    :root: 
+      :child_a: 1
+      :child_b: 2
+      :child_c: 
+        :grandchild_a: 3
+        :grandchild_b: 4
+    :super_secret_password: cant_trust_dev_with_this_we_symlink_this_file
+
+### staging
+
+    RuntimeError: ["app.super_secret_password is REQUIRED for staging"]

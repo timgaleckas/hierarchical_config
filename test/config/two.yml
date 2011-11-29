@@ -1,0 +1,15 @@
+defaults:
+  one: !REQUIRED
+  two: two
+  three: three
+  cache_classes: true
+  tree1:
+    tree2: hey
+    tree3:
+      tree4: blah
+
+defaults[test,cucumber,development]:
+  cache_classes: false
+
+defaults[test,cucumber]:
+  one: one

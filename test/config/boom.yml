@@ -1,2 +1,2 @@
 does_go_boom:
-  <% BOOM if ENV['BOOM'] == 'true' %>
+  <%= BOOM %>
