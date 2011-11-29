@@ -3,14 +3,15 @@ require File.expand_path('../../lib/autoconfig', __FILE__)
 def assert( truth, message = 'is not true' )
   raise message unless truth
 end
+AutoConfig::Base.autoload
 assert( Object.const_get('OneConfig'), 'OneConfig must exist' )
 assert( OneConfig.one == 'yup' )
 ENV['AUTOCONFIG_ENV']='staging'
 begin
-  AutoConfig::Base.reload
+  AutoConfig::Base.load('one')
   assert( false, 'error should be raised' )
 rescue StandardError => e
-  assert( e.to_s =~ /OneConfig.one/, 'staging should raise error stating that OneConfig.one is REQUIRED' )
+  assert( e.to_s =~ /one.*REQUIRED/, 'staging should raise error stating that OneConfig.one is REQUIRED' )
 end
 ENV['AUTOCONFIG_ENV']='test'
 AutoConfig::Base.reload
