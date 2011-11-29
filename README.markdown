@@ -1,6 +1,6 @@
 ## What is it
 
-HierarchicalConfig is a library that implments a strategy for configuring an application in a static, declarative, robust, and intuitive way
+HierarchicalConfig is a library that implements a strategy for configuring an application in a static, declarative, robust, and intuitive way
 
 ## Principles
 
