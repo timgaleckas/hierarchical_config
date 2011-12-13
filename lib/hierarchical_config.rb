@@ -16,6 +16,8 @@ module HierarchicalConfig
           raise ArgumentError, "wrong number of arguments (#{len} for 1)", caller(1)
         end
         modifiable[new_ostruct_member(mname)] = args[0]
+      elsif mname =~ /\?$/
+        !!send(mname.gsub("?",""))
       elsif len == 0 && @table.key?( mid )
         @table[mid]
       else
