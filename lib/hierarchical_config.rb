@@ -23,6 +23,10 @@ module HierarchicalConfig
       end
     end
 
+    def [](attribute)
+      send(attribute)
+    end
+
     def to_hash
       @table.inject({}) do |hash, key_value|
         key, value = *key_value
