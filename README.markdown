@@ -55,6 +55,7 @@ doesn't know about.
           grandchild_a: 3
           grandchild_b: 4
       super_secret_password: !REQUIRED
+      check: true
 
     defaults[development,test]:
       super_secret_password: not_that_secret
@@ -72,34 +73,51 @@ doesn't know about.
 
 ### development
 
-    :root: 
+    :root:
       :child_a: 1
       :child_b: 8
-      :child_c: 
+      :child_c:
         :grandchild_a: 3
         :grandchild_b: 4
     :super_secret_password: not_that_secret
+    :check: true
 
 ### test
 
-    :root: 
+    :root:
       :child_a: 1
       :child_b: 2
-      :child_c: 
+      :child_c:
         :grandchild_a: 3
         :grandchild_b: 4
     :super_secret_password: not_that_secret
+    :check: true
 
 ### production
 
-    :root: 
+    :root:
       :child_a: 1
       :child_b: 2
-      :child_c: 
+      :child_c:
         :grandchild_a: 3
         :grandchild_b: 4
     :super_secret_password: cant_trust_dev_with_this_we_symlink_this_file
+    :check: true
 
 ### staging
 
     RuntimeError: ["app.super_secret_password is REQUIRED for staging"]
+
+### Code
+
+You can access children nodes with a method call or an index operator, in any combination.  Add a `?` to the name of a node to get a boolean value back.
+
+    # in development environment
+    AppConfig = HierarchicalConfig.load_config('app', Rails.root.join('config'), Rails.env)
+
+    AppConfig.root.child_a                  # => 1
+    AppConfig.root["child_c"].grandchild_a  # => 3
+    AppConfig[:super_secret_password]       # => 'not_that_secret'
+    AppConfig.check                         # => true
+    AppConfig.check?                        # => true
+    AppConfig.super_secret_password?        # => true

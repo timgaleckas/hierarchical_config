@@ -17,10 +17,21 @@ rescue StandardError => e
 end
 
 one_config = HierarchicalConfig.load_config( 'one', TEST_CONFIG_DIR, 'test' )
+# access through methods
 assert( one_config.something == 'hello' )
 assert( one_config.cache_classes == false )
 assert( one_config.tree1.tree3.tree4 == 'bleh' )
 assert( one_config.tree1.tree2 == 'hey' )
+
+# access through []
+assert( one_config[:something] == 'hello' )
+assert( one_config["cache_classes"] == false )
+assert( one_config[:tree1].tree3["tree4"] == 'bleh' )
+assert( one_config.tree1[:tree2] == 'hey' )
+
+# return truthy values for ? attributes
+assert( one_config.cache_classes? == false )
+assert( one_config.something? == true )
 
 begin
   one_config.something_that_isnt_there
