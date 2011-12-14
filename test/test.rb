@@ -41,6 +41,13 @@ rescue NoMethodError => m
 end
 
 begin
+  one_config['something_that_isnt_there']
+  assert( false, 'even for hashlike access, unheard of values should raise NoMethodError' )
+rescue NoMethodError => m
+  # this is good
+end
+
+begin
   one_config.something = 'goodbye'
   assert( false, 'attempts to modify config after load should raise a TypeError' )
 rescue TypeError => t
