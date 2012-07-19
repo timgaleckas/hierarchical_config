@@ -12,7 +12,9 @@ HierarchicalConfig is a library that implements a strategy for configuring an ap
    without repeating yourself.
 4. You should be able to change configuration per box based on deploy
    that does not affect the defaults or requirements that are checked in
-   to source control.
+   to source control. This can be accomplished with a deploy time file
+   or environment variables that are also highly configurable and
+   validated.
 
 ## Usage
 
@@ -64,6 +66,11 @@ doesn't know about.
       root:
         child_b: 8
 
+    env_vars:
+      super_secret_password: SUPER_SECRET
+    env_vars[production]:
+      super_secret_password: SUPER_DUPER_SECRET
+
 ### config/app-overrides.yml
 
     production:
@@ -79,7 +86,7 @@ doesn't know about.
       :child_c:
         :grandchild_a: 3
         :grandchild_b: 4
-    :super_secret_password: not_that_secret
+    :super_secret_password: <%= ENV['SUPER_SECRET'] || 'not_that_secret' %>
     :check: true
 
 ### test
@@ -90,7 +97,7 @@ doesn't know about.
       :child_c:
         :grandchild_a: 3
         :grandchild_b: 4
-    :super_secret_password: not_that_secret
+    :super_secret_password: <%= ENV['SUPER_SECRET'] || 'not_that_secret' %>
     :check: true
 
 ### production
@@ -101,7 +108,7 @@ doesn't know about.
       :child_c:
         :grandchild_a: 3
         :grandchild_b: 4
-    :super_secret_password: cant_trust_dev_with_this_we_symlink_this_file
+    :super_secret_password: <%= ENV['SUPER_DUPER_SECRET'] || 'cant_trust_dev_with_this_we_symlink_this_file' %>
     :check: true
 
 ### staging
