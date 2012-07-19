@@ -65,9 +65,16 @@ module HierarchicalConfig
       ordered_stanza_labels += yaml_config.keys.grep(/^defaults\[.*#{environment}/).sort_by{ |a| a.count(',') }
       ordered_stanza_labels << environment if yaml_config.key? environment
 
-      config = ordered_stanza_labels.inject({}) do |acc, label|
-        deep_merge( acc, yaml_config[label] )
-      end
+      config = deep_merge_hashes_in_keys(ordered_stanza_labels, yaml_config)
+
+      env_config_labels = []
+      env_config_labels << 'env_vars' if yaml_config.key? 'env_vars'
+      env_config_labels += yaml_config.keys.grep(/^env_vars\[.*#{environment}/).sort_by{ |a| a.count(',') }
+
+      env_config = deep_merge_hashes_in_keys(env_config_labels, yaml_config)
+      env_config = fill_in_env_vars(env_config)
+
+      deep_merge(config, env_config)
 
     rescue StandardError => e
       raise <<-ERROR
@@ -78,6 +85,25 @@ module HierarchicalConfig
     end
 
     private
+
+    def deep_merge_hashes_in_keys(keys, root_hash)
+      keys.inject({}) do |acc, label|
+        deep_merge( acc, root_hash[label] )
+      end
+    end
+
+    def fill_in_env_vars(hash)
+      r = {}
+      hash.each do |key,value|
+        if !value.nil? && ENV.key?(value)
+          r[key]=ENV[value]
+        elsif value.is_a? Hash
+          leaf_hash = fill_in_env_vars(value)
+          r[key]=leaf_hash unless leaf_hash.keys.empty?
+        end
+      end
+      r
+    end
 
     # merges two hashes with nested hashes if present
     def deep_merge( hash1, hash2 )

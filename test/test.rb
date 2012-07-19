@@ -65,4 +65,28 @@ rescue StandardError => e
   assert( e.to_s =~ /Error loading config from file.*boom/, 'Should receive error about BoomConfig not being able to be read')
 end
 
+env_config = HierarchicalConfig.load_config( 'environment_variable_tests', TEST_CONFIG_DIR, 'development' )
+
+begin
+  env_config.nope
+  assert( false, 'error should be raised' )
+rescue StandardError => e
+  assert( e.to_s =~ /undefined method `nope'/, 'Environment variables that are nil should not even make the key' )
+end
+
+ENV['HELLO']='hello'
+
+env_config = HierarchicalConfig.load_config( 'environment_variable_tests', TEST_CONFIG_DIR, 'development' )
+assert( env_config.nope == 'hello', 'environment variables should get through' )
+
+
+begin
+  env_config = HierarchicalConfig.load_config( 'environment_variable_tests', TEST_CONFIG_DIR, 'production' )
+  assert( false, 'error should be raised' )
+rescue StandardError => e
+  assert( e.to_s =~ /one is REQUIRED for production/, 'the overridden name of the environment variable UNO should take precedence' )
+end
+
+ENV['UNO']='value_for_uno'
+assert( HierarchicalConfig.load_config( 'environment_variable_tests', TEST_CONFIG_DIR, 'production' ).one == 'value_for_uno', 'now with it set we should see the value')
 

@@ -14,6 +14,13 @@ defaults[test,cucumber,development]:
 defaults[test,cucumber]:
   one: one
 
+env_vars:
+  one: ONE
+  nope: HELLO
+
+env_vars[production]:
+  one: UNO
+
 development:
   one: yup
 
