@@ -95,11 +95,11 @@ module HierarchicalConfig
     def fill_in_env_vars(hash)
       r = {}
       hash.each do |key,value|
-        if !value.nil? && ENV.key?(value)
-          r[key]=ENV[value]
-        elsif value.is_a? Hash
+        if value.is_a? Hash
           leaf_hash = fill_in_env_vars(value)
           r[key]=leaf_hash unless leaf_hash.keys.empty?
+        elsif !value.nil? && ENV.key?(value)
+          r[key]=ENV[value]
         end
       end
       r
