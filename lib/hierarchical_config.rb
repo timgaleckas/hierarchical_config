@@ -6,7 +6,7 @@ require 'set'
 module HierarchicalConfig
   REQUIRED = :REQUIRED
 
-  YAML::ENGINE.yamler = 'syck'
+  YAML::ENGINE.yamler = 'syck' unless RUBY_VERSION <= "1.8.7"
 
   YAML.add_builtin_type( 'REQUIRED' ){ REQUIRED }
 
