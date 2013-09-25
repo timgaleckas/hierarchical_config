@@ -5,6 +5,9 @@ require 'set'
 
 module HierarchicalConfig
   REQUIRED = :REQUIRED
+
+  YAML::ENGINE.yamler = 'syck'
+
   YAML.add_builtin_type( 'REQUIRED' ){ REQUIRED }
 
   class OpenStruct < ::OpenStruct
