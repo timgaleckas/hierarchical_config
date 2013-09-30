@@ -5,7 +5,10 @@ require 'set'
 
 module HierarchicalConfig
   REQUIRED = :REQUIRED
+  #this is the incantation that works for ruby 1.8.7 (syck)
   YAML.add_builtin_type( 'REQUIRED' ){ REQUIRED }
+  #and this works for 1.9.3 (Psych)
+  YAML.add_domain_type( nil, 'REQUIRED' ){ REQUIRED }
 
   class OpenStruct < ::OpenStruct
     def method_missing( mid, *args ) # :nodoc:
