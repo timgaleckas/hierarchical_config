@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/timgaleckas/hierarchical_config.svg?branch=master)](https://travis-ci.org/timgaleckas/hierarchical_config)
+
 ## What is it
 
 HierarchicalConfig is a library that implements a strategy for configuring an application in a static, declarative, robust, and intuitive way
