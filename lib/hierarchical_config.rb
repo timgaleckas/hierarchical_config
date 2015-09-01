@@ -134,6 +134,7 @@ module HierarchicalConfig
         when value.respond_to?( :keys ) && value.respond_to?( :values )
           child_hash, child_errors = lock_down_and_ostructify!( value, path + '.' + key, environment )
           errors += child_errors
+          child_hash.each { |key, value| value.freeze }
           hash[key] = OpenStruct.new(child_hash).freeze
         when value == REQUIRED
           errors << "#{path}.#{key} is REQUIRED for #{environment}"

@@ -50,8 +50,15 @@ end
 begin
   one_config.something = 'goodbye'
   assert( false, 'attempts to modify config after load should raise a TypeError' )
-rescue TypeError => t
+rescue TypeError, RuntimeError => t
   # this is good
+end
+
+begin
+  one_config.tree1.tree2 << 'hey'
+  assert( false, 'error should be raised' )
+rescue StandardError => e
+  assert( e.to_s =~ /can't modify frozen String/, 'Should receive error about modifying frozen string')
 end
 
 two_config = HierarchicalConfig.load_config( 'two', TEST_CONFIG_DIR, 'test' )
