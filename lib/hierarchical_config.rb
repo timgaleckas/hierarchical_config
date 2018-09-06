@@ -32,6 +32,8 @@ module HierarchicalConfig
       send(attribute)
     end
 
+    alias :each :each_pair
+
     def to_hash
       @table.inject({}) do |hash, key_value|
         key, value = *key_value
