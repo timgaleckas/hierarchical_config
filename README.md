@@ -130,3 +130,4 @@ You can access children nodes with a method call or an index operator, in any co
     AppConfig.check                         # => true
     AppConfig.check?                        # => true
     AppConfig.super_secret_password?        # => true
+

@@ -3,6 +3,8 @@ require 'yaml'
 require 'erb'
 require 'set'
 
+require "hierarchical_config/version"
+
 module HierarchicalConfig
   REQUIRED = :REQUIRED
   #this is the incantation that works for ruby 1.8.7 (syck)
@@ -37,7 +39,14 @@ module HierarchicalConfig
     def to_hash
       @table.inject({}) do |hash, key_value|
         key, value = *key_value
-        hash[key] = value.respond_to?( :to_hash ) ? value.to_hash : value
+        hash[key] = case value
+                    when Array
+                      value.map{|item| item.to_hash}
+                    when OpenStruct
+                      value.to_hash
+                    else
+                      value
+                    end
         hash
       end
     end
@@ -132,12 +141,18 @@ module HierarchicalConfig
     def lock_down_and_ostructify!( hash, path, environment)
       errors = []
       hash.each do | key, value |
-        case
-        when value.respond_to?( :keys ) && value.respond_to?( :values )
+        case value
+        when Hash
           child_hash, child_errors = lock_down_and_ostructify!( value, path + '.' + key, environment )
           errors += child_errors
           hash[key] = child_hash
-        when value == REQUIRED
+        when Array
+          hash[key] = value.each_with_index.map do |item, index|
+            child_hash, child_errors = lock_down_and_ostructify!( item, "#{path}.#{key}[#{index}]", environment )
+            errors += child_errors
+            child_hash
+          end.freeze
+        when REQUIRED
           errors << "#{path}.#{key} is REQUIRED for #{environment}"
         else
           value.freeze

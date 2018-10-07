@@ -7,6 +7,11 @@ defaults:
     tree2: hey
     tree3:
       tree4: blah
+  array_of_hashes:
+    - key1: value1a
+      key2: value2a
+    - key1: value1b
+      key2: value2b
 
 defaults[test,cucumber,development]:
   cache_classes: false
@@ -22,6 +27,10 @@ test:
   tree1:
     tree3:
       tree4: bleh
+
+staging:
+  array:
+    - key1: !REQUIRED
 
 production:
   three: five
