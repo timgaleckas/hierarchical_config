@@ -12,6 +12,10 @@ defaults:
       key2: value2a
     - key1: value1b
       key2: value2b
+  array_of_strings:
+    - one
+    - two
+    - three
 
 defaults[test,cucumber,development]:
   cache_classes: false

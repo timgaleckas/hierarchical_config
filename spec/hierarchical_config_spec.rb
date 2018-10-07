@@ -78,7 +78,8 @@ RSpec.describe HierarchicalConfig do
             array_of_hashes: [
               {key1: 'value1a', key2: 'value2a'},
               {key1: 'value1b', key2: 'value2b'}
-            ]
+            ],
+            array_of_strings: %w(one two three)
           })
 
         end

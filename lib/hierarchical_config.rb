@@ -39,15 +39,21 @@ module HierarchicalConfig
     def to_hash
       @table.inject({}) do |hash, key_value|
         key, value = *key_value
-        hash[key] = case value
-                    when Array
-                      value.map{|item| item.to_hash}
-                    when OpenStruct
-                      value.to_hash
-                    else
-                      value
-                    end
+        hash[key] = item_to_hash(value)
         hash
+      end
+    end
+
+    private
+
+    def item_to_hash(value)
+      case value
+      when Array
+        value.map{|item| item_to_hash(item)}
+      when OpenStruct
+        value.to_hash
+      else
+        value
       end
     end
   end
@@ -141,24 +147,33 @@ module HierarchicalConfig
     def lock_down_and_ostructify!( hash, path, environment)
       errors = []
       hash.each do | key, value |
-        case value
-        when Hash
-          child_hash, child_errors = lock_down_and_ostructify!( value, path + '.' + key, environment )
-          errors += child_errors
-          hash[key] = child_hash
-        when Array
-          hash[key] = value.each_with_index.map do |item, index|
-            child_hash, child_errors = lock_down_and_ostructify!( item, "#{path}.#{key}[#{index}]", environment )
-            errors += child_errors
-            child_hash
-          end.freeze
-        when REQUIRED
-          errors << "#{path}.#{key} is REQUIRED for #{environment}"
-        else
-          value.freeze
-        end
+        hash[key], child_errors = lock_down_and_ostructify_item!(value, path + '.' + key, environment)
+        errors += child_errors
       end
       return OpenStruct.new(hash).freeze, errors
+    end
+
+    def lock_down_and_ostructify_item!(value, path, environment)
+      errors = []
+      return_value = case value
+      when Hash
+        child_hash, child_errors = lock_down_and_ostructify!( value, path, environment )
+        errors += child_errors
+        child_hash
+      when Array
+        value.each_with_index.map do |item, index|
+          child_item, child_errors = lock_down_and_ostructify_item!( item, "#{path}[#{index}]", environment )
+          errors += child_errors
+          child_item
+        end.freeze
+      when REQUIRED
+        errors << "#{path} is REQUIRED for #{environment}"
+        nil
+      else
+        value.freeze
+      end
+
+      return return_value, errors
     end
   end
 end
