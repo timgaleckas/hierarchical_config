@@ -59,14 +59,14 @@ module HierarchicalConfig
   end
 
   class << self
-    def load_config( name, dir, environment )
+    def load_config( name, dir, environment, preprocess_with=:erb )
       primary_config_file   = "#{dir}/#{name}.yml"
       overrides_config_file = "#{dir}/#{name}-overrides.yml"
 
-      config_hash = load_hash_for_env( primary_config_file, environment )
+      config_hash = load_hash_for_env( primary_config_file, environment, preprocess_with )
 
       if File.exists?( overrides_config_file )
-        overrides_config_hash = load_hash_for_env( overrides_config_file, environment )
+        overrides_config_hash = load_hash_for_env( overrides_config_file, environment, preprocess_with )
         config_hash = deep_merge( config_hash, overrides_config_hash )
       end
 
@@ -77,8 +77,17 @@ module HierarchicalConfig
       config_hash
     end
 
-    def load_hash_for_env( file, environment )
-      yaml_config   = YAML::load(ERB.new(IO.read(file)).result)
+    def load_hash_for_env( file, environment, preprocess_with )
+      file_contents = IO.read(file)
+      yaml_contents = case preprocess_with
+                      when :erb
+                        ERB.new(file_contents).result
+                      when nil
+                        file_contents
+                      else
+                        raise "Unknown preprocessor <#{preprocess_with}>"
+                      end
+      yaml_config   = YAML::load(yaml_contents)
 
       ordered_stanza_labels = []
       ordered_stanza_labels << 'defaults' if yaml_config.key? 'defaults'
