@@ -153,7 +153,8 @@ module HierarchicalConfig
     # it adds key to the error set
     # * recursively sets open structs for deep hashes
     # * recursively freezes config objects
-    def lock_down_and_ostructify!( hash, path, environment)
+    def lock_down_and_ostructify!( _hash, path, environment)
+      hash = Hash[_hash.map{|k,v|[k.to_s, v]}] #stringify keys
       errors = []
       hash.each do | key, value |
         hash[key], child_errors = lock_down_and_ostructify_item!(value, path + '.' + key, environment)

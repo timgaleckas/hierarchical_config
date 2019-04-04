@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hierarchical_config (0.8)
+    hierarchical_config (0.11)
 
 GEM
   remote: https://rubygems.org/
@@ -38,4 +38,4 @@ DEPENDENCIES
   rspec (~> 3.0)
 
 BUNDLED WITH
-   1.16.4
+   1.17.3
