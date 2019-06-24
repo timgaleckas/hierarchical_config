@@ -70,11 +70,11 @@ module HierarchicalConfig
         config_hash = deep_merge( config_hash, overrides_config_hash )
       end
 
-      config_hash, errors = lock_down_and_ostructify!( config_hash, name, environment )
+      config, errors = lock_down_and_ostructify!( config_hash, name, environment )
 
       raise errors.inspect unless errors.empty?
 
-      config_hash
+      config
     end
 
     def load_hash_for_env( file, environment, preprocess_with )
@@ -111,6 +111,14 @@ module HierarchicalConfig
         #{$!.inspect}
         #{$@}
       ERROR
+    end
+
+    def from_hash_for_testing(hash, name='app', environment='test')
+      config, errors = lock_down_and_ostructify!( hash, name, environment )
+
+      raise errors.inspect unless errors.empty?
+
+      config
     end
 
     private
