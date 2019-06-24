@@ -1,3 +1,4 @@
+# typed: false
 RSpec.describe HierarchicalConfig do
   it 'has a version number' do
     expect(HierarchicalConfig::VERSION).not_to be nil
