@@ -13,19 +13,26 @@ module HierarchicalConfig
   YAML.add_domain_type(nil, 'REQUIRED'){REQUIRED}
 
   class OpenStruct < ::OpenStruct
-    def method_missing(mid, *args) # :nodoc:
+    def method_missing(mid, *args) # rubocop:disable Style/MethodMissingSuper, Metrics/AbcSize
       mname = mid.id2name
-      len = args.length
-      if mname.chomp!('=')
-        raise ArgumentError, "wrong number of arguments (#{len} for 1)", caller(1) if len != 1
-
-        modifiable[new_ostruct_member(mname)] = args[0]
+      if args.length == 1 && mname =~ /=$/
+        modifiable[new_ostruct_member(mname[0...-1])] = args.first
       elsif mname =~ /\?$/
-        !!send(mname.delete('?'))
-      elsif len == 0 && @table.key?(mid)
+        !!send(mname[0...-1]) # rubocop:disable Style/DoubleNegation
+      elsif args.length.zero? && @table.key?(mid)
         @table[mid]
       else
         raise NoMethodError, "undefined method `#{mname}' for #{self}", caller(1)
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      mname = mid.id2name
+      case mname
+      when /=$/, /\?$/
+        @table.key?(mname[0..-1]) || super
+      else
+        @table.key?(mname) || super
       end
     end
 
@@ -75,7 +82,7 @@ module HierarchicalConfig
       config
     end
 
-    def load_hash_for_env(file, environment, preprocess_with)
+    def load_hash_for_env(file, environment, preprocess_with) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/AbcSize, Metrics/LineLength
       file_contents = IO.read(file)
       yaml_contents = case preprocess_with
                       when :erb
@@ -102,7 +109,7 @@ module HierarchicalConfig
       env_config = fill_in_env_vars(env_config)
 
       deep_merge(config, env_config)
-    rescue StandardError => e
+    rescue StandardError
       raise <<-ERROR
         Error loading config from file #{file}.
         #{$ERROR_INFO.inspect}
@@ -140,7 +147,7 @@ module HierarchicalConfig
     end
 
     # merges two hashes with nested hashes if present
-    def deep_merge(hash1, hash2)
+    def deep_merge(hash1, hash2) # rubocop:disable Metrics/AbcSize
       hash1 = hash1.dup
       (hash1.keys + hash2.keys).each do |key|
         if hash1.key?(key) && hash2.key?(key) &&
@@ -158,8 +165,8 @@ module HierarchicalConfig
     # it adds key to the error set
     # * recursively sets open structs for deep hashes
     # * recursively freezes config objects
-    def lock_down_and_ostructify!(_hash, path, environment)
-      hash = Hash[_hash.map{|k, v| [k.to_s, v]}] # stringify keys
+    def lock_down_and_ostructify!(original_hash, path, environment)
+      hash = Hash[original_hash.map{|k, v| [k.to_s, v]}] # stringify keys
       errors = []
       hash.each do |key, value|
         hash[key], child_errors = lock_down_and_ostructify_item!(value, path + '.' + key, environment)
@@ -170,23 +177,24 @@ module HierarchicalConfig
 
     def lock_down_and_ostructify_item!(value, path, environment)
       errors = []
-      return_value = case value
-                     when Hash
-                       child_hash, child_errors = lock_down_and_ostructify!(value, path, environment)
-                       errors += child_errors
-                       child_hash
-                     when Array
-                       value.each_with_index.map do |item, index|
-                         child_item, child_errors = lock_down_and_ostructify_item!(item, "#{path}[#{index}]", environment)
-                         errors += child_errors
-                         child_item
-                       end.freeze
-                     when REQUIRED
-                       errors << "#{path} is REQUIRED for #{environment}"
-                       nil
-                     else
-                       value.freeze
-      end
+      return_value =
+        case value
+        when Hash
+          child_hash, child_errors = lock_down_and_ostructify!(value, path, environment)
+          errors += child_errors
+          child_hash
+        when Array
+          value.each_with_index.map do |item, index|
+            child_item, child_errors = lock_down_and_ostructify_item!(item, "#{path}[#{index}]", environment)
+            errors += child_errors
+            child_item
+          end.freeze
+        when REQUIRED
+          errors << "#{path} is REQUIRED for #{environment}"
+          nil
+        else
+          value.freeze
+        end
 
       [return_value, errors]
     end
