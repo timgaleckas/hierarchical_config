@@ -1,34 +1,33 @@
 RSpec.describe HierarchicalConfig do
-  it "has a version number" do
+  it 'has a version number' do
     expect(HierarchicalConfig::VERSION).not_to be nil
   end
 
-  let(:test_config_dir) { File.expand_path('../config', __FILE__ ) }
+  let(:test_config_dir){File.expand_path('config', __dir__)}
 
-  let(:config){ HierarchicalConfig.load_config(file, test_config_dir, environment ) }
+  let(:config){HierarchicalConfig.load_config(file, test_config_dir, environment)}
 
-  let(:environment) { 'development' }
+  let(:environment){'development'}
 
   context 'with one.yml' do
-    let(:file) { 'one' }
+    let(:file){'one'}
 
     context 'in development environment' do
-
-      it "parses and returns a simple value" do
+      it 'parses and returns a simple value' do
         expect(config.one).to eq('yup')
       end
     end
 
     context 'in staging environment' do
-      let(:environment) { 'staging' }
+      let(:environment){'staging'}
 
       it 'raises an error since one.one is unset for staging' do
-        expect{ config }.to raise_error(/one.one is REQUIRED for staging.*one.array\[0\].key1 is REQUIRED for staging/)
+        expect{config}.to raise_error(/one.one is REQUIRED for staging.*one.array\[0\].key1 is REQUIRED for staging/)
       end
     end
 
     context 'in test environment' do
-      let(:environment) { 'test' }
+      let(:environment){'test'}
 
       it 'supports method access' do
         expect(config.something).to eq('hello')
@@ -54,19 +53,19 @@ RSpec.describe HierarchicalConfig do
       end
 
       it 'raises NoMethodError for unconfigured values' do
-        expect{ config.something_that_isnt_there }.to raise_error(NoMethodError)
-        expect{ config['something_that_isnt_there'] }.to raise_error(NoMethodError)
-        expect{ config[:something_that_isnt_there] }.to raise_error(NoMethodError)
+        expect{config.something_that_isnt_there}.to raise_error(NoMethodError)
+        expect{config['something_that_isnt_there']}.to raise_error(NoMethodError)
+        expect{config[:something_that_isnt_there]}.to raise_error(NoMethodError)
       end
 
       it 'raises Error when trying to modify config' do
-        expect{config.something='goodbye'}.to raise_error(/can't modify/)
-        expect{config.tree1.tree2  << 'goodbye'}.to raise_error(/can't modify/)
+        expect{config.something = 'goodbye'}.to raise_error(/can't modify/)
+        expect{config.tree1.tree2 << 'goodbye'}.to raise_error(/can't modify/)
       end
 
-      context "to_hash" do
+      context 'to_hash' do
         it 'supports to_hash' do
-          expect(config.to_hash).to eq({
+          expect(config.to_hash).to eq(
             one: 'one',
             two: 'two',
             three: 'three',
@@ -74,20 +73,20 @@ RSpec.describe HierarchicalConfig do
             something: 'hello',
             tree1: {
               tree2: 'hey',
-              tree3: {tree4: 'bleh'}},
+              tree3: {tree4: 'bleh'},
+            },
             array_of_hashes: [
               {key1: 'value1a', key2: 'value2a'},
-              {key1: 'value1b', key2: 'value2b'}
+              {key1: 'value1b', key2: 'value2b'},
             ],
-            array_of_strings: %w(one two three)
-          })
-
+            array_of_strings: %w[one two three],
+          )
         end
       end
     end
 
     context 'in production environment' do
-      let(:environment){ 'production' }
+      let(:environment){'production'}
 
       it 'raises an exception for required values that are unset' do
         expect{config}.to raise_error(/one is REQUIRED for production/)
@@ -96,15 +95,15 @@ RSpec.describe HierarchicalConfig do
   end
 
   context 'with two.yml and two-overrides.yml' do
-    let(:file) { 'two' }
+    let(:file){'two'}
 
     it 'deep merges overrides on top of file and looks the same' do
-      expect(config).to eq(HierarchicalConfig.load_config('one', test_config_dir, environment ))
+      expect(config).to eq(HierarchicalConfig.load_config('one', test_config_dir, environment))
     end
   end
 
   context 'with boom.yml' do
-    let(:file) { 'boom' }
+    let(:file){'boom'}
 
     it 'supports ERB and exposes an error' do
       expect{config}.to raise_error(/Error loading config from file.*boom/)
@@ -112,15 +111,15 @@ RSpec.describe HierarchicalConfig do
   end
 
   context 'with environment_variable_tests.yml' do
-    let(:file) { 'environment_variable_tests' }
+    let(:file){'environment_variable_tests'}
 
     it 'supports reading values from environemnt varialbles and inserting them into the config' do
-      stub_const("ENV", {'HELLO' => "I'm here"})
+      stub_const('ENV', 'HELLO' => "I'm here")
       expect(config.nope).to eq("I'm here")
     end
 
     it "doesn't set values that are unset in the ENV" do
-      stub_const("ENV", {})
+      stub_const('ENV', {})
       expect{config.nope}.to raise_error(NoMethodError)
     end
   end

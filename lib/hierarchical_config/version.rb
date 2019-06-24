@@ -1,3 +1,3 @@
 module HierarchicalConfig
-  VERSION = "0.11"
+  VERSION = '0.11'.freeze
 end
