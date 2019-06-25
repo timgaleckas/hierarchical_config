@@ -1,6 +1,5 @@
 language: ruby
 rvm:
- - "1.8.7"
- - "1.9.3"
- - "2.2.3"
-script: ruby test/test.rb
+ - "2.4.6"
+ - "2.5.5"
+script: bundle exec rspec
