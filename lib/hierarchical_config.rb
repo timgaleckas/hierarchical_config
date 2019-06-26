@@ -1,6 +1,5 @@
 # typed: true
 
-require 'ostruct'
 require 'yaml'
 require 'erb'
 require 'set'
@@ -12,55 +11,57 @@ module HierarchicalConfig
   REQUIRED = :REQUIRED
   YAML.add_domain_type(nil, 'REQUIRED'){REQUIRED}
 
-  class OpenStruct < ::OpenStruct
+  class ValueObject
+    class << self
+      extend T::Sig
+
+      sig{params(hash: T::Hash[String, BasicObject]).returns(ValueObject)}
+      def create(hash)
+        new_value_class = Class.new(ValueObject)
+        dup_hash = hash.dup.freeze
+        dup_hash.each do |key, value|
+          new_value_class.define_method(key) do
+            value
+          end
+          new_value_class.define_method("#{key}?") do
+            !!value
+          end
+          new_value_class.define_method("#{key}=") do |value|
+            raise "can't modify"
+          end
+        end
+        new_value_class.define_method(:to_hash) do
+          Hash[dup_hash.map{|key, value| [key.to_sym, item_to_hash(value)]}]
+        end
+        new_value_class.define_method(:[]) do |key|
+          dup_hash.fetch(key.to_s) do
+            raise NoMethodError, "nope"
+          end
+        end
+        new_value_class.define_method(:==) do |other|
+          to_hash == other.to_hash
+        end
+        new_value_class.define_method(:inspect) do
+          "#{ValueObject} #{dup_hash.inspect}"
+        end
+        new_value_class.alias_method :to_s, :inspect
+        new_value_class.new
+      end
+    end
+
     extend T::Sig
 
-    sig{params(method_name_sym: Symbol, args: T.untyped).returns(T.untyped)}
-    def method_missing(method_name_sym, *args) # rubocop:disable Style/MethodMissingSuper
-      method_name = method_name_sym.id2name
-      if args.length == 1 && method_name =~ /=$/
-        modifiable[new_ostruct_member(method_name[0...-1])] = args.first
-      elsif method_name =~ /\?$/
-        !!send(T.cast(method_name[0...-1], String)) # rubocop:disable Style/DoubleNegation
-      elsif args.length.zero? && @table.key?(method_name_sym)
-        @table[method_name_sym]
-      else
-        raise NoMethodError, "undefined method `#{method_name}' for #{self}", caller(1) || []
-      end
-    end
-
-    sig{params(method_name_sym: Symbol, include_private: T::Boolean).returns(T::Boolean)}
-    def respond_to_missing?(method_name_sym, include_private = false)
-      method_name = method_name_sym.id2name
-      case method_name
-      when /=$/, /\?$/
-        @table.key?(method_name[0..-1]) || super
-      else
-        @table.key?(method_name) || super
-      end
-    end
-
-    sig{params(attribute: T.any(String, Symbol)).returns(T.untyped)}
-    def [](attribute)
-      send(attribute)
-    end
-
-    sig{returns(T::Hash[Symbol, T.untyped])}
     def to_hash
-      @table.each_with_object({}) do |key_value, hash|
-        key, value = *key_value
-        hash[key] = item_to_hash(value)
-      end
+      raise NotImplementedError, "subclasses need to implement to_hash"
     end
 
     private
-
     sig{params(value: BasicObject).returns(BasicObject)}
     def item_to_hash(value)
       case value
       when Array
         value.map{|item| item_to_hash(item)}
-      when OpenStruct
+      when ValueObject
         value.to_hash
       else
         value
@@ -71,7 +72,7 @@ module HierarchicalConfig
   class << self
     extend T::Sig
 
-    sig{params(name: String, dir: String, environment: String, preprocess_with: Symbol).returns(OpenStruct)}
+    sig{params(name: String, dir: String, environment: String, preprocess_with: Symbol).returns(ValueObject)}
     def load_config(name, dir, environment, preprocess_with = :erb)
       primary_config_file   = "#{dir}/#{name}.yml"
       overrides_config_file = "#{dir}/#{name}-overrides.yml"
@@ -127,7 +128,7 @@ module HierarchicalConfig
       ERROR
     end
 
-    sig{params(hash: Hash, name: String, environment: String).returns(OpenStruct)}
+    sig{params(hash: Hash, name: String, environment: String).returns(ValueObject)}
     def from_hash_for_testing(hash, name = 'app', environment = 'test')
       config, errors = lock_down_and_ostructify!(hash, name, environment)
 
@@ -184,7 +185,7 @@ module HierarchicalConfig
         original_hash: T.untyped,
         path: T.untyped,
         environment: T.untyped,
-      ).returns([T.untyped, T::Array[String]])
+      ).returns([ValueObject, T::Array[String]])
     end
     def lock_down_and_ostructify!(original_hash, path, environment)
       hash = Hash[original_hash.map{|k, v| [k.to_s, v]}] # stringify keys
@@ -193,7 +194,7 @@ module HierarchicalConfig
         hash[key], child_errors = lock_down_and_ostructify_item!(value, path + '.' + key, environment)
         errors += child_errors
       end
-      [OpenStruct.new(hash).freeze, errors]
+      [ValueObject.create(hash), errors]
     end
 
     sig{params(value: T.untyped, path: T.untyped, environment: T.untyped).returns([T.untyped, T::Array[String]])}
