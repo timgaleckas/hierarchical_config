@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 
 require 'yaml'
 require 'erb'
@@ -13,19 +13,25 @@ module HierarchicalConfig
   REQUIRED = :REQUIRED
   YAML.add_domain_type(nil, 'REQUIRED'){REQUIRED}
 
+  ClassOrModule = T.type_alias(T.any(Class, Module))
+
   module ConfigStruct
+    extend T::Sig
     include Kernel
 
+    sig{returns(T::Hash[Symbol, T.untyped])}
     def to_hash
       Hash[self.class.props.keys.map{|key| [key, item_to_hash(send(key))]}]
     end
 
+    sig{params(key: T.any(String, Symbol)).returns(T.untyped)}
     def [](key)
       send(key)
     end
 
     private
 
+    sig{params(item: BasicObject).returns(T.any(BasicObject, Hash))}
     def item_to_hash(item)
       case item
       when ConfigStruct
@@ -37,6 +43,8 @@ module HierarchicalConfig
       end
     end
   end
+
+  @@root_index = T.let(0, Integer) # rubocop:disable Style/ClassVars
 
   class << self
     extend T::Sig
@@ -59,14 +67,17 @@ module HierarchicalConfig
       errors
     end
 
+    sig{params(current_item: Object, name: String, parent_class: ClassOrModule).returns(T.any(Class, T::Types::Base))}
     def build_types(current_item, name, parent_class)
       case current_item
       when Hash
-        new_type_name = ActiveSupport::Inflector.camelize(name)
+        new_type_name = ActiveSupport::Inflector.camelize(ActiveSupport::Inflector.underscore(name))
+
+        return Hash if current_item.keys.to_a.any?{|k| k =~ /^[0-9]/ || k =~ /[- ]/}
 
         new_type =
-          if parent_class.const_defined?(new_type_name)
-            parent_class.const_get(new_type_name)
+          if parent_class.const_defined?(new_type_name, false)
+            parent_class.const_get(new_type_name, false)
           else
             parent_class.const_set(new_type_name, Class.new(T::Struct).tap{|c| c.include ConfigStruct})
           end
@@ -85,15 +96,25 @@ module HierarchicalConfig
         types = current_item.each_with_index.map do |item, index|
           build_types(item, name + '_' + index.to_s, parent_class)
         end
-        T::Array[T.unsafe(T).any(*types)]
+        case types.size
+        when 0
+          T.untyped
+        when 1
+          T::Array[types.first]
+        else
+          T::Array[T.unsafe(T).any(*types)]
+        end
       else
         current_item.class
       end
     end
 
+    sig{params(current_item: Object, name: String, parent_class: ClassOrModule).returns(T.untyped)}
     def build_config(current_item, name, parent_class)
       case current_item
       when Hash
+        return current_item.symbolize_keys if current_item.keys.to_a.any?{|k| k =~ /^[0-9]/ || k =~ /[- ]/}
+
         current_type = parent_class.const_get(ActiveSupport::Inflector.camelize(name))
         current_type.new(Hash[current_item.map{|key, value| [key.to_sym, build_config(value, key, current_type)]}])
       when Array
@@ -105,10 +126,10 @@ module HierarchicalConfig
       end
     end
 
+    sig{returns(Class)}
     def build_new_root
-      @root_index ||= 0
-      @root_index += 1
-      const_set("ConfigRoot#{@root_index}", Class.new)
+      @@root_index += 1 # rubocop:disable Style/ClassVars
+      const_set("ConfigRoot#{@@root_index}", Class.new)
     end
 
     sig do
@@ -116,8 +137,8 @@ module HierarchicalConfig
         name: String,
         dir: String,
         environment: String,
-        preprocess_with: Symbol,
-        root_class: T.any(Class, Module),
+        preprocess_with: T.nilable(Symbol),
+        root_class: ClassOrModule,
       ).returns(T::Struct)
     end
     def load_config(name, dir, environment, preprocess_with = :erb, root_class = build_new_root)
@@ -139,7 +160,13 @@ module HierarchicalConfig
       build_config(config_hash, name, root_class)
     end
 
-    sig{params(file: String, environment: String, preprocess_with: Symbol).returns(T::Hash[String, BasicObject])}
+    sig do
+      params(
+        file: String,
+        environment: String,
+        preprocess_with: T.nilable(Symbol),
+      ).returns(T::Hash[String, BasicObject])
+    end
     def load_hash_for_env(file, environment, preprocess_with)
       file_contents = IO.read(file)
       yaml_contents = case preprocess_with
