@@ -368,6 +368,7 @@ module RuboCop::AST::CollectionNode
   def []=(*args, &block); end
   def all?(*args, &block); end
   def any?(*args, &block); end
+  def append(*args, &block); end
   def assoc(*args, &block); end
   def at(*args, &block); end
   def bsearch(*args, &block); end
@@ -400,6 +401,7 @@ module RuboCop::AST::CollectionNode
   def each_with_object(*args, &block); end
   def empty?(*args, &block); end
   def entries(*args, &block); end
+  def extract_options!(*args, &block); end
   def fetch(*args, &block); end
   def fill(*args, &block); end
   def find(*args, &block); end
@@ -436,6 +438,7 @@ module RuboCop::AST::CollectionNode
   def partition(*args, &block); end
   def permutation(*args, &block); end
   def pop(*args, &block); end
+  def prepend(*args, &block); end
   def product(*args, &block); end
   def push(*args, &block); end
   def rassoc(*args, &block); end
@@ -1165,6 +1168,7 @@ class RuboCop::Cop::Commissioner::CopError < Struct
   def line; end
   def line=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
 end
@@ -1287,6 +1291,7 @@ class RuboCop::Cop::VariableForce::VariableReference < Struct
   def name; end
   def name=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
 end
@@ -1295,6 +1300,7 @@ class RuboCop::Cop::VariableForce::AssignmentReference < Struct
   def node; end
   def node=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
 end
@@ -1322,6 +1328,7 @@ class RuboCop::Cop::VariableForce::Branch::Base < Struct
   def self.classes; end
   def self.define_predicate(name, child_index: nil); end
   def self.inherited(subclass); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
   def self.type; end
@@ -3775,6 +3782,7 @@ class RuboCop::Cop::Lint::Syntax::PseudoSourceRange < Struct
   def line; end
   def line=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
   def source_line; end
@@ -6720,6 +6728,7 @@ class RuboCop::Cop::Team::Investigation < Struct
   def offenses; end
   def offenses=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
 end
@@ -6848,6 +6857,7 @@ class RuboCop::Formatter::HTMLFormatter::Color < Struct
   def red; end
   def red=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
   def to_s; end
@@ -7144,6 +7154,7 @@ class RuboCop::CommentConfig::CopAnalysis < Struct
   def line_ranges; end
   def line_ranges=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
   def start_line_number; end

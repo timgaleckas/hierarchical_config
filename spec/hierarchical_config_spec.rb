@@ -60,7 +60,7 @@ RSpec.describe HierarchicalConfig do
       end
 
       it 'raises Error when trying to modify config' do
-        expect{config.something = 'goodbye'}.to raise_error(/can't modify/)
+        expect{config.something = 'goodbye'}.to raise_error(/cannot be modified/)
         expect{config.tree1.tree2 << 'goodbye'}.to raise_error(/can't modify/)
       end
 
@@ -99,7 +99,7 @@ RSpec.describe HierarchicalConfig do
     let(:file){'two'}
 
     it 'deep merges overrides on top of file and looks the same' do
-      expect(config).to eq(HierarchicalConfig.load_config('one', test_config_dir, environment))
+      expect(config.to_hash).to eq(HierarchicalConfig.load_config('one', test_config_dir, environment).to_hash)
     end
   end
 
@@ -114,14 +114,18 @@ RSpec.describe HierarchicalConfig do
   context 'with environment_variable_tests.yml' do
     let(:file){'environment_variable_tests'}
 
-    it 'supports reading values from environemnt varialbles and inserting them into the config' do
-      stub_const('ENV', 'HELLO' => "I'm here")
-      expect(config.nope).to eq("I'm here")
+    context 'with HELLO set' do
+      it 'supports reading values from environemnt varialbles and inserting them into the config' do
+        stub_const('ENV', 'HELLO' => "I'm here")
+        expect(config.nope).to eq("I'm here")
+      end
     end
 
-    it "doesn't set values that are unset in the ENV" do
-      stub_const('ENV', {})
-      expect{config.nope}.to raise_error(NoMethodError)
+    context 'with HELLO unset' do
+      it "doesn't set values that are unset in the ENV" do
+        stub_const('ENV', {})
+        expect{config.nope}.to raise_error(NoMethodError)
+      end
     end
   end
 end

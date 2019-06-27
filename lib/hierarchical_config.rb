@@ -4,6 +4,8 @@ require 'yaml'
 require 'erb'
 require 'set'
 require 'sorbet-runtime'
+require 'active_support'
+require 'active_support/core_ext/hash/keys'
 
 require 'hierarchical_config/version'
 
@@ -11,60 +13,27 @@ module HierarchicalConfig
   REQUIRED = :REQUIRED
   YAML.add_domain_type(nil, 'REQUIRED'){REQUIRED}
 
-  class ValueObject
-    class << self
-      extend T::Sig
-
-      sig{params(hash: T::Hash[String, BasicObject]).returns(ValueObject)}
-      def create(hash)
-        new_value_class = Class.new(ValueObject)
-        dup_hash = hash.dup.freeze
-        dup_hash.each do |key, value|
-          new_value_class.define_method(key) do
-            value
-          end
-          new_value_class.define_method("#{key}?") do
-            !!value
-          end
-          new_value_class.define_method("#{key}=") do |value|
-            raise "can't modify"
-          end
-        end
-        new_value_class.define_method(:to_hash) do
-          Hash[dup_hash.map{|key, value| [key.to_sym, item_to_hash(value)]}]
-        end
-        new_value_class.define_method(:[]) do |key|
-          dup_hash.fetch(key.to_s) do
-            raise NoMethodError, "nope"
-          end
-        end
-        new_value_class.define_method(:==) do |other|
-          to_hash == other.to_hash
-        end
-        new_value_class.define_method(:inspect) do
-          "#{ValueObject} #{dup_hash.inspect}"
-        end
-        new_value_class.alias_method :to_s, :inspect
-        new_value_class.new
-      end
-    end
-
-    extend T::Sig
+  module ConfigStruct
+    include Kernel
 
     def to_hash
-      raise NotImplementedError, "subclasses need to implement to_hash"
+      Hash[self.class.props.keys.map{|key| [key, item_to_hash(send(key))]}]
+    end
+
+    def [](key)
+      send(key)
     end
 
     private
-    sig{params(value: BasicObject).returns(BasicObject)}
-    def item_to_hash(value)
-      case value
+
+    def item_to_hash(item)
+      case item
+      when ConfigStruct
+        item.to_hash
       when Array
-        value.map{|item| item_to_hash(item)}
-      when ValueObject
-        value.to_hash
+        item.map{|i| item_to_hash(i)}
       else
-        value
+        item
       end
     end
   end
@@ -72,8 +41,86 @@ module HierarchicalConfig
   class << self
     extend T::Sig
 
-    sig{params(name: String, dir: String, environment: String, preprocess_with: Symbol).returns(ValueObject)}
-    def load_config(name, dir, environment, preprocess_with = :erb)
+    sig{params(value: T.untyped, path: String).returns(T::Array[String])}
+    def detect_errors(value, path)
+      errors = []
+      case value
+      when Hash
+        value.each do |key, item|
+          errors += detect_errors(item, "#{path}.#{key}")
+        end
+      when Array
+        value.each_with_index do |item, index|
+          errors += detect_errors(item, "#{path}[#{index}]")
+        end
+      when REQUIRED
+        errors << "#{path} is REQUIRED"
+      end
+      errors
+    end
+
+    def build_types(current_item, name, parent_class)
+      case current_item
+      when Hash
+        new_type_name = ActiveSupport::Inflector.camelize(name)
+
+        new_type =
+          if parent_class.const_defined?(new_type_name)
+            parent_class.const_get(new_type_name)
+          else
+            parent_class.const_set(new_type_name, Class.new(T::Struct).tap{|c| c.include ConfigStruct})
+          end
+
+        current_item.each do |key, value|
+          next if new_type.props.key?(key.to_sym)
+
+          new_type.const key, build_types(value, key, new_type)
+          new_type.define_method "#{key}?" do
+            !!send(key) # rubocop:disable Style/DoubleNegation
+          end
+        end
+
+        new_type
+      when Array
+        types = current_item.each_with_index.map do |item, index|
+          build_types(item, name + '_' + index.to_s, parent_class)
+        end
+        T::Array[T.unsafe(T).any(*types)]
+      else
+        current_item.class
+      end
+    end
+
+    def build_config(current_item, name, parent_class)
+      case current_item
+      when Hash
+        current_type = parent_class.const_get(ActiveSupport::Inflector.camelize(name))
+        current_type.new(Hash[current_item.map{|key, value| [key.to_sym, build_config(value, key, current_type)]}])
+      when Array
+        current_item.each_with_index.map do |item, index|
+          build_config(item, name + '_' + index.to_s, parent_class)
+        end.freeze
+      else
+        current_item.freeze
+      end
+    end
+
+    def build_new_root
+      @root_index ||= 0
+      @root_index += 1
+      const_set("ConfigRoot#{@root_index}", Class.new)
+    end
+
+    sig do
+      params(
+        name: String,
+        dir: String,
+        environment: String,
+        preprocess_with: Symbol,
+        root_class: T.any(Class, Module),
+      ).returns(T::Struct)
+    end
+    def load_config(name, dir, environment, preprocess_with = :erb, root_class = build_new_root)
       primary_config_file   = "#{dir}/#{name}.yml"
       overrides_config_file = "#{dir}/#{name}-overrides.yml"
 
@@ -84,11 +131,12 @@ module HierarchicalConfig
         config_hash = deep_merge(config_hash, overrides_config_hash)
       end
 
-      config, errors = lock_down_and_ostructify!(config_hash, name, environment)
+      errors = detect_errors(config_hash, name)
+      raise errors.map{|error| error + ' for ' + environment}.inspect unless errors.empty?
 
-      raise errors.inspect unless errors.empty?
+      build_types(config_hash, name, root_class)
 
-      config
+      build_config(config_hash, name, root_class)
     end
 
     sig{params(file: String, environment: String, preprocess_with: Symbol).returns(T::Hash[String, BasicObject])}
@@ -128,15 +176,6 @@ module HierarchicalConfig
       ERROR
     end
 
-    sig{params(hash: Hash, name: String, environment: String).returns(ValueObject)}
-    def from_hash_for_testing(hash, name = 'app', environment = 'test')
-      config, errors = lock_down_and_ostructify!(hash, name, environment)
-
-      raise errors.inspect unless errors.empty?
-
-      config
-    end
-
     private
 
     sig{params(keys: T::Array[String], root_hash: T::Hash[String, T::Hash[String, T.untyped]]).returns(Hash)}
@@ -173,53 +212,6 @@ module HierarchicalConfig
         end
       end
       hash1
-    end
-
-    # Mutator method that does three things:
-    # * checks if any of the keys were required and not set. Upon finding
-    # it adds key to the error set
-    # * recursively sets open structs for deep hashes
-    # * recursively freezes config objects
-    sig do
-      params(
-        original_hash: T.untyped,
-        path: T.untyped,
-        environment: T.untyped,
-      ).returns([ValueObject, T::Array[String]])
-    end
-    def lock_down_and_ostructify!(original_hash, path, environment)
-      hash = Hash[original_hash.map{|k, v| [k.to_s, v]}] # stringify keys
-      errors = []
-      hash.each do |key, value|
-        hash[key], child_errors = lock_down_and_ostructify_item!(value, path + '.' + key, environment)
-        errors += child_errors
-      end
-      [ValueObject.create(hash), errors]
-    end
-
-    sig{params(value: T.untyped, path: T.untyped, environment: T.untyped).returns([T.untyped, T::Array[String]])}
-    def lock_down_and_ostructify_item!(value, path, environment)
-      errors = []
-      return_value =
-        case value
-        when Hash
-          child_hash, child_hash_errors = lock_down_and_ostructify!(value, path, environment)
-          errors += child_hash_errors
-          child_hash
-        when Array
-          value.each_with_index.map do |item, index|
-            child_item, child_item_errors = lock_down_and_ostructify_item!(item, "#{path}[#{index}]", environment)
-            errors += child_item_errors
-            child_item
-          end.freeze
-        when REQUIRED
-          errors << "#{path} is REQUIRED for #{environment}"
-          nil
-        else
-          value.freeze
-        end
-
-      [return_value, errors]
     end
   end
 end

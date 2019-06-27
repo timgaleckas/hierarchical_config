@@ -182,6 +182,7 @@ class Rake::FileList
   def add_matching(pattern); end
   def all?(*args, &block); end
   def any?(*args, &block); end
+  def append(*args, &block); end
   def assoc(*args, &block); end
   def at(*args, &block); end
   def bsearch(*args, &block); end
@@ -221,6 +222,7 @@ class Rake::FileList
   def existing!; end
   def existing; end
   def ext(newext = nil); end
+  def extract_options!(*args, &block); end
   def fetch(*args, &block); end
   def fill(*args, &block); end
   def find(*args, &block); end
@@ -266,6 +268,7 @@ class Rake::FileList
   def pathmap(spec = nil, &block); end
   def permutation(*args, &block); end
   def pop(*args, &block); end
+  def prepend(*args, &block); end
   def product(*args, &block); end
   def push(*args, &block); end
   def rassoc(*args, &block); end

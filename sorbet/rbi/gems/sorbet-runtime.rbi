@@ -7,11 +7,12 @@
 #
 #   https://github.com/sorbet/sorbet-typed/new/master?filename=lib/sorbet-runtime/all/sorbet-runtime.rbi
 #
-# sorbet-runtime-0.4.4298
+# sorbet-runtime-0.4.4314
 module T::Configuration
   def self.call_validation_error_handler(signature, opts); end
   def self.call_validation_error_handler=(value); end
   def self.call_validation_error_handler_default(signature, opts); end
+  def self.enable_checking_for_sigs_marked_checked_tests; end
   def self.hard_assert_handler(str, extra); end
   def self.hard_assert_handler=(value); end
   def self.hard_assert_handler_default(str, _); end
@@ -70,7 +71,6 @@ class T::Private::DeclState
   def self.current=(other); end
 end
 module T::Utils
-  def self.DANGER_enable_checking_in_tests; end
   def self.arity(method); end
   def self.coerce(val); end
   def self.methods_excluding_object(mod); end
@@ -138,6 +138,7 @@ class T::Private::Methods::DeclarationBlock < Struct
   def mod; end
   def mod=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
 end
@@ -325,6 +326,7 @@ class T::Private::Methods::Declaration < Struct
   def returns; end
   def returns=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
   def soft_notify; end
@@ -403,6 +405,7 @@ class T::Utils::Nilable::TypeInfo < Struct
   def non_nilable_type; end
   def non_nilable_type=(_); end
   def self.[](*arg0); end
+  def self.inspect; end
   def self.members; end
   def self.new(*arg0); end
 end
