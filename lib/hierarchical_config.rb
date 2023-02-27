@@ -85,7 +85,7 @@ module HierarchicalConfig
         current_item.each do |key, value|
           next if new_type.props.key?(key.to_sym)
 
-          new_type.const key, build_types(value, key, new_type)
+          new_type.const key.to_sym, build_types(value, key, new_type)
           new_type.define_method "#{key}?" do
             !!send(key) # rubocop:disable Style/DoubleNegation
           end
