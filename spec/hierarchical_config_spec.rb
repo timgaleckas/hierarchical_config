@@ -60,7 +60,7 @@ RSpec.describe HierarchicalConfig do
       end
 
       it 'raises Error when trying to modify config' do
-        expect{config.something = 'goodbye'}.to raise_error(/cannot be modified/)
+        expect{config.something = 'goodbye'}.to raise_error(/undefined method `something=/)
         expect{config.tree1.tree2 << 'goodbye'}.to raise_error(/can't modify/)
       end
 
