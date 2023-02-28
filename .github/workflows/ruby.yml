@@ -22,8 +22,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['3.1']
-
+        ruby-version: ['2.4', '2.5', '2.6', '2.7', '3.0', '3.1', '3.2']
+        include:
+          - gemfile: Gemfile
+            not-only-test: true
+          - gemfile: Gemfile.2.4
+            ruby-version: 2.5
+            not-only-test: false
+          - gemfile: Gemfile.2.4
+            ruby-version: 2.4
+            not-only-test: false
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Ruby
@@ -32,9 +42,11 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
       - name: Install dependencies
         run: bundle install
-      - name: Type check
+      - if: ${{ matrix.not-only-test }}
+        name: Type check
         run: bundle exec srb tc
-      - name: Lint
+      - if: ${{ matrix.not-only-test }}
+        name: Lint
         run: bundle exec rubocop
       - name: Run tests
         run: bundle exec rspec

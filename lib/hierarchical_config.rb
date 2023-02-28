@@ -21,7 +21,7 @@ module HierarchicalConfig
 
     sig{returns(T::Hash[Symbol, T.untyped])}
     def to_hash
-      self.class.props.keys.to_h{|key| [key, item_to_hash(send(key))]}
+      Hash[self.class.props.keys.map{|key| [key, item_to_hash(send(key))]}] # rubocop:disable Style/HashConversion
     end
 
     sig{params(key: T.any(String, Symbol)).returns(T.untyped)}
@@ -116,7 +116,7 @@ module HierarchicalConfig
         return current_item.symbolize_keys if current_item.keys.to_a.any?{|k| k =~ /^[0-9]/ || k =~ /[- ]/}
 
         current_type = parent_class.const_get(ActiveSupport::Inflector.camelize(name))
-        current_type.new(current_item.to_h{|key, value| [key.to_sym, build_config(value, key, current_type)]})
+        current_type.new(Hash[current_item.map{|key, value| [key.to_sym, build_config(value, key, current_type)]}]) # rubocop:disable Style/HashConversion
       when Array
         current_item.each_with_index.map do |item, index|
           build_config(item, "#{name}_#{index}", parent_class)
