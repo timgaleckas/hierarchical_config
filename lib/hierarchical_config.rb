@@ -11,9 +11,9 @@ require 'hierarchical_config/version'
 
 module HierarchicalConfig
   REQUIRED = :REQUIRED
-  YAML.add_domain_type(nil, 'REQUIRED'){REQUIRED}
+  T.unsafe(YAML).add_domain_type(nil, 'REQUIRED'){REQUIRED}
 
-  ClassOrModule = T.type_alias(T.any(Class, Module))
+  ClassOrModule = T.type_alias{T.any(Class, Module)}
 
   module ConfigStruct
     extend T::Sig
@@ -31,7 +31,7 @@ module HierarchicalConfig
 
     private
 
-    sig{params(item: BasicObject).returns(T.any(BasicObject, Hash))}
+    sig{params(item: BasicObject).returns(T.any(BasicObject, T::Hash[T.untyped, T.untyped]))}
     def item_to_hash(item)
       case item
       when ConfigStruct
@@ -51,7 +51,7 @@ module HierarchicalConfig
 
     sig{params(value: T.untyped, path: String).returns(T::Array[String])}
     def detect_errors(value, path)
-      errors = []
+      errors = T.let([], T::Array[String])
       case value
       when Hash
         value.each do |key, item|
@@ -205,14 +205,14 @@ module HierarchicalConfig
 
     private
 
-    sig{params(keys: T::Array[String], root_hash: T::Hash[String, T::Hash[String, T.untyped]]).returns(Hash)}
+    sig{params(keys: T::Array[String], root_hash: T::Hash[String, T::Hash[String, T.untyped]]).returns(T::Hash[T.untyped, T.untyped])}
     def deep_merge_hashes_in_keys(keys, root_hash)
       keys.inject({}) do |acc, label|
         deep_merge(acc, T.must(root_hash[label]))
       end
     end
 
-    sig{params(hash: Hash).returns(T::Hash[T.untyped, T.untyped])}
+    sig{params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[T.untyped, T.untyped])}
     def fill_in_env_vars(hash)
       r = {}
       hash.each do |key, value|
@@ -227,7 +227,7 @@ module HierarchicalConfig
     end
 
     # merges two hashes with nested hashes if present
-    sig{params(hash1: Hash, hash2: Hash).returns(Hash)}
+    sig{params(hash1: T::Hash[T.untyped, T.untyped], hash2: T::Hash[T.untyped, T.untyped]).returns(T::Hash[T.untyped, T.untyped])}
     def deep_merge(hash1, hash2)
       hash1 = hash1.dup
       (hash1.keys + hash2.keys).each do |key|
