@@ -24,14 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activesupport'
   spec.add_dependency 'sorbet-runtime'
 
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'pry-rescue'
-  spec.add_development_dependency 'pry-stack_explorer'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'rubocop'
-  spec.add_development_dependency 'rubocop-performance'
-  spec.add_development_dependency 'sorbet'
-  spec.add_development_dependency 'tapioca'
+  spec.metadata['rubygems_mfa_required'] = 'true'
+
+  spec.required_ruby_version = '>= 2.4.6'
 end
