@@ -1,4 +1,5 @@
 # typed: strict
+
 require 'bundler/setup'
 require 'hierarchical_config'
 

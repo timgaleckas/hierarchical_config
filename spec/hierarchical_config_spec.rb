@@ -1,25 +1,26 @@
 # typed: false
-RSpec.describe HierarchicalConfig do
-  it 'has a version number' do
-    expect(HierarchicalConfig::VERSION).not_to be nil
-  end
 
+RSpec.describe HierarchicalConfig do
   let(:test_config_dir){File.expand_path('config', __dir__)}
 
-  let(:config){HierarchicalConfig.load_config(file, test_config_dir, environment)}
+  let(:config){described_class.load_config(file, test_config_dir, environment)}
 
   let(:environment){'development'}
+
+  it 'has a version number' do
+    expect(described_class::VERSION).not_to be_nil
+  end
 
   context 'with one.yml' do
     let(:file){'one'}
 
-    context 'in development environment' do
+    context 'when in development environment' do
       it 'parses and returns a simple value' do
         expect(config.one).to eq('yup')
       end
     end
 
-    context 'in staging environment' do
+    context 'when in staging environment' do
       let(:environment){'staging'}
 
       it 'raises an error since one.one is unset for staging' do
@@ -27,7 +28,7 @@ RSpec.describe HierarchicalConfig do
       end
     end
 
-    context 'in test environment' do
+    context 'when in test environment' do
       let(:environment){'test'}
 
       it 'supports method access' do
@@ -42,30 +43,30 @@ RSpec.describe HierarchicalConfig do
         expect(config[:something]).to eq('hello')
       end
 
-      it 'supports deeply chained access' do
+      it 'supports deeply chained access' do # rubocop:disable RSpec/MultipleExpectations
         expect(config.tree1.tree3.tree4).to eq('bleh')
         expect(config[:tree1].tree3['tree4']).to eq('bleh')
         expect(config.array_of_hashes.first.key1).to eq('value1a')
       end
 
-      it 'suports interrogative methods for truthiness' do
+      it 'suports interrogative methods for truthiness' do # rubocop:disable RSpec/MultipleExpectations
         expect(config.cache_classes?).to be false
         expect(config.something?).to be true
       end
 
-      it 'raises NoMethodError for unconfigured values' do
+      it 'raises NoMethodError for unconfigured values' do # rubocop:disable RSpec/MultipleExpectations
         expect{config.something_that_isnt_there}.to raise_error(NoMethodError)
         expect{config['something_that_isnt_there']}.to raise_error(NoMethodError)
         expect{config[:something_that_isnt_there]}.to raise_error(NoMethodError)
       end
 
-      it 'raises Error when trying to modify config' do
+      it 'raises Error when trying to modify config' do # rubocop:disable RSpec/MultipleExpectations
         expect{config.something = 'goodbye'}.to raise_error(/undefined method `something=/)
         expect{config.tree1.tree2 << 'goodbye'}.to raise_error(/can't modify/)
       end
 
-      context 'to_hash' do
-        it 'supports to_hash' do
+      context 'with to_hash' do # rubocop:disable RSpec/NestedGroups
+        it 'supports to_hash' do # rubocop:disable RSpec/ExampleLength
           expect(config.to_hash).to eq(
             one: 'one',
             two: 'two',
@@ -86,7 +87,7 @@ RSpec.describe HierarchicalConfig do
       end
     end
 
-    context 'in production environment' do
+    context 'when in production environment' do
       let(:environment){'production'}
 
       it 'raises an exception for required values that are unset' do
@@ -99,7 +100,7 @@ RSpec.describe HierarchicalConfig do
     let(:file){'two'}
 
     it 'deep merges overrides on top of file and looks the same' do
-      expect(config.to_hash).to eq(HierarchicalConfig.load_config('one', test_config_dir, environment).to_hash)
+      expect(config.to_hash).to eq(described_class.load_config('one', test_config_dir, environment).to_hash)
     end
   end
 

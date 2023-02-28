@@ -11,9 +11,9 @@ require 'hierarchical_config/version'
 
 module HierarchicalConfig
   REQUIRED = :REQUIRED
-  YAML.add_domain_type(nil, 'REQUIRED'){REQUIRED}
+  T.unsafe(YAML).add_domain_type(nil, 'REQUIRED'){REQUIRED}
 
-  ClassOrModule = T.type_alias(T.any(Class, Module))
+  ClassOrModule = T.type_alias{T.any(Class, Module)}
 
   module ConfigStruct
     extend T::Sig
@@ -21,7 +21,7 @@ module HierarchicalConfig
 
     sig{returns(T::Hash[Symbol, T.untyped])}
     def to_hash
-      Hash[self.class.props.keys.map{|key| [key, item_to_hash(send(key))]}]
+      self.class.props.keys.to_h{|key| [key, item_to_hash(send(key))]}
     end
 
     sig{params(key: T.any(String, Symbol)).returns(T.untyped)}
@@ -31,7 +31,7 @@ module HierarchicalConfig
 
     private
 
-    sig{params(item: BasicObject).returns(T.any(BasicObject, Hash))}
+    sig{params(item: BasicObject).returns(T.any(BasicObject, T::Hash[T.untyped, T.untyped]))}
     def item_to_hash(item)
       case item
       when ConfigStruct
@@ -51,7 +51,7 @@ module HierarchicalConfig
 
     sig{params(value: T.untyped, path: String).returns(T::Array[String])}
     def detect_errors(value, path)
-      errors = []
+      errors = T.let([], T::Array[String])
       case value
       when Hash
         value.each do |key, item|
@@ -87,14 +87,14 @@ module HierarchicalConfig
 
           new_type.const key.to_sym, build_types(value, key, new_type)
           new_type.send(:define_method, "#{key}?") do
-            !!send(key) # rubocop:disable Style/DoubleNegation
+            !!send(key)
           end
         end
 
         new_type
       when Array
         types = current_item.each_with_index.map do |item, index|
-          build_types(item, name + '_' + index.to_s, parent_class)
+          build_types(item, "#{name}_#{index}", parent_class)
         end
         case types.size
         when 0
@@ -116,10 +116,10 @@ module HierarchicalConfig
         return current_item.symbolize_keys if current_item.keys.to_a.any?{|k| k =~ /^[0-9]/ || k =~ /[- ]/}
 
         current_type = parent_class.const_get(ActiveSupport::Inflector.camelize(name))
-        current_type.new(Hash[current_item.map{|key, value| [key.to_sym, build_config(value, key, current_type)]}])
+        current_type.new(current_item.to_h{|key, value| [key.to_sym, build_config(value, key, current_type)]})
       when Array
         current_item.each_with_index.map do |item, index|
-          build_config(item, name + '_' + index.to_s, parent_class)
+          build_config(item, "#{name}_#{index}", parent_class)
         end.freeze
       else
         current_item.freeze
@@ -153,7 +153,7 @@ module HierarchicalConfig
       end
 
       errors = detect_errors(config_hash, name)
-      raise errors.map{|error| error + ' for ' + environment}.inspect unless errors.empty?
+      raise errors.map{|error| "#{error} for #{environment}"}.inspect unless errors.empty?
 
       build_types(config_hash, name, root_class)
 
@@ -168,7 +168,7 @@ module HierarchicalConfig
       ).returns(T::Hash[String, BasicObject])
     end
     def load_hash_for_env(file, environment, preprocess_with)
-      file_contents = IO.read(file)
+      file_contents = File.read(file)
       yaml_contents = case preprocess_with
                       when :erb
                         ERB.new(file_contents).result
@@ -205,14 +205,18 @@ module HierarchicalConfig
 
     private
 
-    sig{params(keys: T::Array[String], root_hash: T::Hash[String, T::Hash[String, T.untyped]]).returns(Hash)}
+    sig do
+      params(keys: T::Array[String],
+             root_hash: T::Hash[String,
+                                T::Hash[String, T.untyped]]).returns(T::Hash[T.untyped, T.untyped])
+    end
     def deep_merge_hashes_in_keys(keys, root_hash)
       keys.inject({}) do |acc, label|
         deep_merge(acc, T.must(root_hash[label]))
       end
     end
 
-    sig{params(hash: Hash).returns(T::Hash[T.untyped, T.untyped])}
+    sig{params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[T.untyped, T.untyped])}
     def fill_in_env_vars(hash)
       r = {}
       hash.each do |key, value|
@@ -220,14 +224,17 @@ module HierarchicalConfig
           leaf_hash = fill_in_env_vars(value)
           r[key] = leaf_hash unless leaf_hash.keys.empty?
         elsif !value.nil? && ENV.key?(value)
-          r[key] = ENV[value]
+          r[key] = ENV.fetch(value, nil)
         end
       end
       r
     end
 
     # merges two hashes with nested hashes if present
-    sig{params(hash1: Hash, hash2: Hash).returns(Hash)}
+    sig do
+      params(hash1: T::Hash[T.untyped, T.untyped],
+             hash2: T::Hash[T.untyped, T.untyped]).returns(T::Hash[T.untyped, T.untyped])
+    end
     def deep_merge(hash1, hash2)
       hash1 = hash1.dup
       (hash1.keys + hash2.keys).each do |key|
