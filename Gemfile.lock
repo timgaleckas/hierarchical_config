@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hierarchical_config (0.11)
+    hierarchical_config (0.12)
 
 GEM
   remote: https://rubygems.org/
