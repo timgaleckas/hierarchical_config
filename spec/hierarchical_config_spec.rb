@@ -82,6 +82,32 @@ RSpec.describe HierarchicalConfig do
               {key1: 'value1b', key2: 'value2b'},
             ],
             array_of_strings: %w[one two three],
+            strangekey_hash_of_arrays: {
+              ALLCAPSZERO: [
+                {arr0: true, arr1: 'one'},
+              ],
+              ALLCAPSONE: [
+                {arr0: false, arr2: 'two'},
+              ],
+              ALL_CAPS_TWO: [
+                {arr0: true, arr3: 'three'},
+              ],
+              CamelCase: [
+                {arr0: false, arr4: 'four'},
+              ],
+              dromedaryCase: [
+                {arr0: true, arr5: 'five'},
+              ],
+              snake_case: [
+                {arr0: false, arr6: 'six'},
+              ],
+              Camel_Snake: [
+                {arr0: true, arr7: 'seven'},
+              ],
+              dromedary_Snake: [
+                {arr0: false, arr8: 'eight'},
+              ],
+            },
           )
         end
       end
@@ -109,6 +135,14 @@ RSpec.describe HierarchicalConfig do
 
     it 'supports ERB and exposes an error' do
       expect{config}.to raise_error(/Error loading config from file.*boom/)
+    end
+  end
+
+  context 'with prop_ending_with_question_mark.yml' do
+    let(:file){'prop_ending_with_question_mark'}
+
+    it 'raises the invalid property error from sorbet' do
+      expect{config}.to raise_error(ArgumentError, /Invalid prop name in HierarchicalConfig/)
     end
   end
 

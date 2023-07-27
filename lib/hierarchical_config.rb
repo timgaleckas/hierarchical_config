@@ -71,7 +71,7 @@ module HierarchicalConfig
     def build_types(current_item, name, parent_class)
       case current_item
       when Hash
-        new_type_name = ActiveSupport::Inflector.camelize(ActiveSupport::Inflector.underscore(name))
+        new_type_name = inflect_typename(name)
 
         return Hash if current_item.keys.to_a.any?{|k| k =~ /^[0-9]/ || k =~ /[- ]/}
 
@@ -115,7 +115,7 @@ module HierarchicalConfig
       when Hash
         return current_item.symbolize_keys if current_item.keys.to_a.any?{|k| k =~ /^[0-9]/ || k =~ /[- ]/}
 
-        current_type = parent_class.const_get(ActiveSupport::Inflector.camelize(name))
+        current_type = parent_class.const_get(inflect_typename(name))
         current_type.new(Hash[current_item.map{|key, value| [key.to_sym, build_config(value, key, current_type)]}]) # rubocop:disable Style/HashConversion
       when Array
         current_item.each_with_index.map do |item, index|
@@ -246,6 +246,11 @@ module HierarchicalConfig
         end
       end
       hash1
+    end
+
+    sig{params(name: String).returns(String)}
+    def inflect_typename(name)
+      ActiveSupport::Inflector.camelize(name)
     end
   end
 end
