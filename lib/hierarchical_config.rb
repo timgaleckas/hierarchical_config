@@ -24,6 +24,21 @@ module HierarchicalConfig
       Hash[self.class.props.keys.map{|key| [key, item_to_hash(send(key))]}] # rubocop:disable Style/HashConversion
     end
 
+    sig do
+      params(blk: T.nilable(T.proc.
+               params(name: T.untyped, value: T.untyped).
+               returns([T.untyped, T.untyped]))).
+        returns(T::Hash[T.untyped, T.untyped])
+    end
+    def to_h(&blk)
+      hash = to_hash
+      if blk
+        hash.to_h(&blk)
+      else
+        hash.to_h
+      end
+    end
+
     sig{params(key: T.any(String, Symbol)).returns(T.untyped)}
     def [](key)
       send(key)

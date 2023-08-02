@@ -111,6 +111,58 @@ RSpec.describe HierarchicalConfig do
           )
         end
       end
+
+      context 'with to_h' do # rubocop:disable RSpec/NestedGroups
+        it 'supports to_h without block' do # rubocop:disable RSpec/ExampleLength
+          expect(config.to_h).to eq(
+            one: 'one',
+            two: 'two',
+            three: 'three',
+            cache_classes: false,
+            something: 'hello',
+            tree1: {
+              tree2: 'hey',
+              tree3: {tree4: 'bleh'},
+            },
+            array_of_hashes: [
+              {key1: 'value1a', key2: 'value2a'},
+              {key1: 'value1b', key2: 'value2b'},
+            ],
+            array_of_strings: %w[one two three],
+            strangekey_hash_of_arrays: {
+              ALLCAPSZERO: [
+                {arr0: true, arr1: 'one'},
+              ],
+              ALLCAPSONE: [
+                {arr0: false, arr2: 'two'},
+              ],
+              ALL_CAPS_TWO: [
+                {arr0: true, arr3: 'three'},
+              ],
+              CamelCase: [
+                {arr0: false, arr4: 'four'},
+              ],
+              dromedaryCase: [
+                {arr0: true, arr5: 'five'},
+              ],
+              snake_case: [
+                {arr0: false, arr6: 'six'},
+              ],
+              Camel_Snake: [
+                {arr0: true, arr7: 'seven'},
+              ],
+              dromedary_Snake: [
+                {arr0: false, arr8: 'eight'},
+              ],
+            },
+          )
+        end
+
+        it 'supports to_h with block' do
+          result = config.to_h{|n, v| [n.to_s, v]}
+          expect(result['one']).to eq('one')
+        end
+      end
     end
 
     context 'when in production environment' do
