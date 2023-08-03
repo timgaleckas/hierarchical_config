@@ -25,14 +25,17 @@ module HierarchicalConfig
     end
 
     sig do
-      type_parameters(:A, :B)
-        .params(
+      type_parameters(:A, :B).
+        params(
           blk: T.nilable(
-            T.proc.params(name: Symbol, value: T.untyped)
-             .returns([T.type_parameter(:A), T.type_parameter(:B)])
-          )
-        )
-        .returns(T::Hash[T.any(Symbol, T.type_parameter(:A)), T.type_parameter(:B)])
+            T.proc.params(name: Symbol, value: T.untyped).
+             returns([T.type_parameter(:A), T.type_parameter(:B)]),
+          ),
+        ).
+        returns(T.any(
+          T::Hash[T.type_parameter(:A), T.type_parameter(:B)],
+          T::Hash[Symbol, T.untyped],
+        ))
     end
     def to_h(&blk)
       hash = to_hash
