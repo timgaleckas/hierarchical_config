@@ -40,7 +40,7 @@ module HierarchicalConfig
         )
     end
     def to_h(&blk)
-      hash = to_hash
+      hash = self.class.props.keys.map{|key| [key, send(key)]}
       if blk
         # copied from https://github.com/marcandre/backports/blob/36572870cbdc0cda30e5bab81af8ba390a6cf7c7/lib/backports/2.6.0/hash/to_h.rb#L3C39-L3C39
         # to implement to_h with block for ruby < 2.6.0
