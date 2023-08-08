@@ -32,10 +32,12 @@ module HierarchicalConfig
              returns([T.type_parameter(:A), T.type_parameter(:B)]),
           ),
         ).
-        returns(T.any(
-          T::Hash[T.type_parameter(:A), T.type_parameter(:B)],
-          T::Hash[Symbol, T.untyped],
-        ))
+        returns(
+          T.any(
+            T::Hash[T.type_parameter(:A), T.type_parameter(:B)],
+            T::Hash[Symbol, T.untyped],
+          ),
+        )
     end
     def to_h(&blk)
       hash = to_hash
