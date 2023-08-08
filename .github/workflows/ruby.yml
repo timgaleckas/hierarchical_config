@@ -26,6 +26,9 @@ jobs:
         include:
           - gemfile: Gemfile
             not-only-test: true
+          - gemfile: Gemfile
+            ruby-version: 2.6
+            not-only-test: false
           - gemfile: Gemfile.2.4
             ruby-version: 2.5
             not-only-test: false
