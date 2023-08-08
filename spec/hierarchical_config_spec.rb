@@ -113,54 +113,46 @@ RSpec.describe HierarchicalConfig do
       end
 
       context 'with to_h' do # rubocop:disable RSpec/NestedGroups
-        it 'supports to_h without block' do # rubocop:disable RSpec/ExampleLength
-          expect(config.to_h).to eq(
-            one: 'one',
-            two: 'two',
-            three: 'three',
-            cache_classes: false,
-            something: 'hello',
-            tree1: {
-              tree2: 'hey',
-              tree3: {tree4: 'bleh'},
-            },
-            array_of_hashes: [
-              {key1: 'value1a', key2: 'value2a'},
-              {key1: 'value1b', key2: 'value2b'},
-            ],
-            array_of_strings: %w[one two three],
-            strangekey_hash_of_arrays: {
-              ALLCAPSZERO: [
-                {arr0: true, arr1: 'one'},
-              ],
-              ALLCAPSONE: [
-                {arr0: false, arr2: 'two'},
-              ],
-              ALL_CAPS_TWO: [
-                {arr0: true, arr3: 'three'},
-              ],
-              CamelCase: [
-                {arr0: false, arr4: 'four'},
-              ],
-              dromedaryCase: [
-                {arr0: true, arr5: 'five'},
-              ],
-              snake_case: [
-                {arr0: false, arr6: 'six'},
-              ],
-              Camel_Snake: [
-                {arr0: true, arr7: 'seven'},
-              ],
-              dromedary_Snake: [
-                {arr0: false, arr8: 'eight'},
-              ],
-            },
-          )
+        it 'supports to_h without block' do # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations
+          expect(config.to_h[:one]).to eq('one')
+          expect(config.to_h[:two]).to eq('two')
+          expect(config.to_h[:three]).to eq('three')
+          expect(config.to_h[:cache_classes]).to be(false)
+          expect(config.to_h[:something]).to eq('hello')
+          expect(config.to_h[:tree1][:tree2]).to eq('hey')
+          expect(config.to_h[:tree1][:tree3][:tree4]).to eq('bleh')
+          expect(config.to_h[:array_of_hashes][0][:key1]).to eq('value1a')
+          expect(config.to_h[:array_of_hashes][0][:key2]).to eq('value2a')
+          expect(config.to_h[:array_of_hashes][1][:key1]).to eq('value1b')
+          expect(config.to_h[:array_of_hashes][1][:key2]).to eq('value2b')
+          expect(config.to_h[:array_of_strings]).to eq(%w[one two three])
+          expect(config.to_h[:strangekey_hash_of_arrays][:ALLCAPSZERO][0][:arr0]).to be(true)
+          expect(config.to_h[:strangekey_hash_of_arrays][:ALLCAPSZERO][0][:arr1]).to eq('one')
+          expect(config.to_h[:strangekey_hash_of_arrays][:ALLCAPSONE][0][:arr0]).to be(false)
+          expect(config.to_h[:strangekey_hash_of_arrays][:ALLCAPSONE][0][:arr2]).to eq('two')
+          expect(config.to_h[:strangekey_hash_of_arrays][:ALL_CAPS_TWO][0][:arr0]).to be(true)
+          expect(config.to_h[:strangekey_hash_of_arrays][:ALL_CAPS_TWO][0][:arr3]).to eq('three')
+          expect(config.to_h[:strangekey_hash_of_arrays][:CamelCase][0][:arr0]).to be(false)
+          expect(config.to_h[:strangekey_hash_of_arrays][:CamelCase][0][:arr4]).to eq('four')
+          expect(config.to_h[:strangekey_hash_of_arrays][:dromedaryCase][0][:arr0]).to be(true)
+          expect(config.to_h[:strangekey_hash_of_arrays][:dromedaryCase][0][:arr5]).to eq('five')
+          expect(config.to_h[:strangekey_hash_of_arrays][:snake_case][0][:arr0]).to be(false)
+          expect(config.to_h[:strangekey_hash_of_arrays][:snake_case][0][:arr6]).to eq('six')
+          expect(config.to_h[:strangekey_hash_of_arrays][:Camel_Snake][0][:arr0]).to be(true)
+          expect(config.to_h[:strangekey_hash_of_arrays][:Camel_Snake][0][:arr7]).to eq('seven')
+          expect(config.to_h[:strangekey_hash_of_arrays][:dromedary_Snake][0][:arr0]).to be(false)
+          expect(config.to_h[:strangekey_hash_of_arrays][:dromedary_Snake][0][:arr8]).to eq('eight')
         end
 
-        it 'supports to_h with block' do
+        it 'supports to_h with block' do # rubocop:disable RSpec/MultipleExpectations
           result = config.to_h{|n, v| [n.to_s, v]}
           expect(result['one']).to eq('one')
+          expect(result['strangekey_hash_of_arrays'][:ALLCAPSZERO][0][:arr0]).to be(true)
+        end
+
+        it 'converts values to ConfigStruct supporting both hash/key and method access' do # rubocop:disable RSpec/MultipleExpectations
+          expect(config.to_h[:tree1][:tree2]).to eq('hey')
+          expect(config.to_h[:tree1].tree2).to eq('hey')
         end
       end
     end
