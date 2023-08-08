@@ -42,7 +42,13 @@ module HierarchicalConfig
     def to_h(&blk)
       hash = to_hash
       if blk
-        hash.to_h(&blk)
+        # copied from https://github.com/marcandre/backports/blob/36572870cbdc0cda30e5bab81af8ba390a6cf7c7/lib/backports/2.6.0/hash/to_h.rb#L3C39-L3C39
+        # to implement to_h with block for ruby < 2.6.0
+        if {n: true}.to_h{[:ok, true]}[:n]
+          T.unsafe(hash).map(&blk).to_h
+        else
+          hash.to_h(&blk)
+        end
       else
         hash.to_h
       end
