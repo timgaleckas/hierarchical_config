@@ -3,6 +3,7 @@
 require 'yaml'
 require 'erb'
 require 'set'
+require 'date'
 require 'sorbet-runtime'
 require 'active_support'
 require 'active_support/core_ext/hash/keys'
@@ -207,7 +208,7 @@ module HierarchicalConfig
                       else
                         raise "Unknown preprocessor <#{preprocess_with}>"
                       end
-      yaml_config   = YAML.safe_load(yaml_contents)
+      yaml_config   = YAML.safe_load(yaml_contents, permitted_classes: [Symbol, Date])
 
       ordered_stanza_labels = []
       ordered_stanza_labels << 'defaults' if yaml_config.key? 'defaults'

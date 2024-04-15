@@ -182,6 +182,15 @@ RSpec.describe HierarchicalConfig do
     end
   end
 
+  context 'with permittable_classes.yml' do
+    let(:file){'permittable_classes'}
+
+    it 'permits loading of Date and Symbol classes' do
+      expect(config.some_date).to eq(Date.new(2024, 4, 15))
+      expect(config.some_symbol).to eq(:testing_symbol)
+    end
+  end
+
   context 'with prop_ending_with_question_mark.yml' do
     let(:file){'prop_ending_with_question_mark'}
 

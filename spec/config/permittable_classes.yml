@@ -1,0 +1,4 @@
+defaults:
+  some_string: placeholder_string
+  some_symbol: :testing_symbol
+  some_date: 2024-04-15

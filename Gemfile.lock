@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hierarchical_config (0.13)
+    hierarchical_config (0.13.2)
       activesupport
       sorbet-runtime
 
@@ -87,6 +87,7 @@ GEM
     sorbet (0.5.10689)
       sorbet-static (= 0.5.10689)
     sorbet-runtime (0.5.10689)
+    sorbet-static (0.5.10689-universal-darwin-21)
     sorbet-static (0.5.10689-universal-darwin-22)
     sorbet-static (0.5.10689-x86_64-linux)
     sorbet-static-and-runtime (0.5.10689)
@@ -120,6 +121,7 @@ GEM
       yard (>= 0.9)
 
 PLATFORMS
+  x86_64-darwin-21
   x86_64-darwin-22
   x86_64-linux
 
