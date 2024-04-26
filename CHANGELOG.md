@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/timgaleckas/hierarchical_config/compare/v0.13.2...v1.0.0) (2024-04-26)
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([b6d1d53](https://github.com/timgaleckas/hierarchical_config/commit/b6d1d534072bf60bebacabef5f81d57bcb907eef))
+
 ## [0.13.2](https://github.com/timgaleckas/hierarchical_config/compare/v0.13.1...v0.13.2) (2023-08-09)
 
 

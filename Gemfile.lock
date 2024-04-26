@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hierarchical_config (0.13.2)
+    hierarchical_config (1.0.0)
       activesupport
       sorbet-runtime
 

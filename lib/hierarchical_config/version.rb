@@ -1,5 +1,5 @@
 # typed: true
 
 module HierarchicalConfig
-  VERSION = '0.13.2'.freeze
+  VERSION = '1.0.0'.freeze
 end
