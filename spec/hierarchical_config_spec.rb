@@ -145,7 +145,7 @@ RSpec.describe HierarchicalConfig do
         end
 
         it 'supports to_h with block' do
-          result = config.to_h{|n, v| [n.to_s, v]}
+          result = config.to_h{|n, v| [n.to_s, v]} # rubocop:disable Style/HashTransformKeys
           expect(result['one']).to eq('one')
           expect(result['strangekey_hash_of_arrays'][:ALLCAPSZERO][0][:arr0]).to be(true)
         end
