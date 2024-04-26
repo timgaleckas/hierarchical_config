@@ -66,3 +66,6 @@ Metrics/AbcSize:
 
 Metrics/CyclomaticComplexity:
   Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
