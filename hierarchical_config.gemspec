@@ -26,5 +26,5 @@ Gem::Specification.new do |spec|
 
   spec.metadata['rubygems_mfa_required'] = 'true'
 
-  spec.required_ruby_version = '>= 2.4.6'
+  spec.required_ruby_version = '>= 2.6.10'
 end

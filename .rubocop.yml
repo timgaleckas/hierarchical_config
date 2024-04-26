@@ -4,7 +4,7 @@ require:
 
 AllCops:
   NewCops: enable
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.6
 
 Layout/DotPosition:
   EnforcedStyle: trailing
@@ -65,4 +65,7 @@ Metrics/AbcSize:
   Enabled: false
 
 Metrics/CyclomaticComplexity:
+  Enabled: false
+
+RSpec/MultipleExpectations:
   Enabled: false

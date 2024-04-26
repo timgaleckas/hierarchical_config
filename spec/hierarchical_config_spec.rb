@@ -43,24 +43,24 @@ RSpec.describe HierarchicalConfig do
         expect(config[:something]).to eq('hello')
       end
 
-      it 'supports deeply chained access' do # rubocop:disable RSpec/MultipleExpectations
+      it 'supports deeply chained access' do
         expect(config.tree1.tree3.tree4).to eq('bleh')
         expect(config[:tree1].tree3['tree4']).to eq('bleh')
         expect(config.array_of_hashes.first.key1).to eq('value1a')
       end
 
-      it 'suports interrogative methods for truthiness' do # rubocop:disable RSpec/MultipleExpectations
+      it 'suports interrogative methods for truthiness' do
         expect(config.cache_classes?).to be false
         expect(config.something?).to be true
       end
 
-      it 'raises NoMethodError for unconfigured values' do # rubocop:disable RSpec/MultipleExpectations
+      it 'raises NoMethodError for unconfigured values' do
         expect{config.something_that_isnt_there}.to raise_error(NoMethodError)
         expect{config['something_that_isnt_there']}.to raise_error(NoMethodError)
         expect{config[:something_that_isnt_there]}.to raise_error(NoMethodError)
       end
 
-      it 'raises Error when trying to modify config' do # rubocop:disable RSpec/MultipleExpectations
+      it 'raises Error when trying to modify config' do
         expect{config.something = 'goodbye'}.to raise_error(/undefined method `something=/)
         expect{config.tree1.tree2 << 'goodbye'}.to raise_error(/can't modify/)
       end
@@ -113,7 +113,7 @@ RSpec.describe HierarchicalConfig do
       end
 
       context 'with to_h' do # rubocop:disable RSpec/NestedGroups
-        it 'supports to_h without block' do # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations
+        it 'supports to_h without block' do # rubocop:disable RSpec/ExampleLength
           expect(config.to_h[:one]).to eq('one')
           expect(config.to_h[:two]).to eq('two')
           expect(config.to_h[:three]).to eq('three')
@@ -144,13 +144,13 @@ RSpec.describe HierarchicalConfig do
           expect(config.to_h[:strangekey_hash_of_arrays][:dromedary_Snake][0][:arr8]).to eq('eight')
         end
 
-        it 'supports to_h with block' do # rubocop:disable RSpec/MultipleExpectations
-          result = config.to_h{|n, v| [n.to_s, v]}
+        it 'supports to_h with block' do
+          result = config.to_h{|n, v| [n.to_s, v]} # rubocop:disable Style/HashTransformKeys
           expect(result['one']).to eq('one')
           expect(result['strangekey_hash_of_arrays'][:ALLCAPSZERO][0][:arr0]).to be(true)
         end
 
-        it 'converts values to ConfigStruct supporting both hash/key and method access' do # rubocop:disable RSpec/MultipleExpectations
+        it 'converts values to ConfigStruct supporting both hash/key and method access' do
           expect(config.to_h[:tree1][:tree2]).to eq('hey')
           expect(config.to_h[:tree1].tree2).to eq('hey')
         end
@@ -179,6 +179,15 @@ RSpec.describe HierarchicalConfig do
 
     it 'supports ERB and exposes an error' do
       expect{config}.to raise_error(/Error loading config from file.*boom/)
+    end
+  end
+
+  context 'with permittable_classes.yml' do
+    let(:file){'permittable_classes'}
+
+    it 'permits loading of Date and Symbol classes' do
+      expect(config.some_date).to eq(Date.new(2024, 4, 15))
+      expect(config.some_symbol).to eq(:testing_symbol)
     end
   end
 
