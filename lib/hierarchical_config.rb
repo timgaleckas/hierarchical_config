@@ -208,7 +208,7 @@ module HierarchicalConfig
                       else
                         raise "Unknown preprocessor <#{preprocess_with}>"
                       end
-      yaml_config   = YAML.safe_load(yaml_contents, permitted_classes: [Symbol, Date])
+      yaml_config   = YAML.safe_load(yaml_contents, permitted_classes: [Symbol, Date], aliases: true)
 
       ordered_stanza_labels = []
       ordered_stanza_labels << 'defaults' if yaml_config.key? 'defaults'
